@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>EduAccess - Login</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <link rel="stylesheet" href="{% static 'styles.css' %}"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  
+</head>
+<body class="login-body">
+  <div class="background-blur"></div>
+  <div class="login-container">
+    <div class="logo-container">
+      <img src="{% static 'assets/logo.png' %}" alt="EduAccess Logo" class="logo">
+    </div>
+    <h1><i class="fas fa-university"></i> EduAccess</h1>
+    <form action="/login/" method="POST">
+      {% csrf_token %}
+      <input type="text" name="username" placeholder="👤 Username" required>
+      <input type="password" name="password" placeholder="🔒 Password" required>
+      <select name="role" required>
+        <option value="">👤 Select Role</option>
+        <option value="student">🎓 Student</option>
+        <option value="professor">👨‍🏫 Professor</option>
+        <option value="admin">🛠️ Admin</option>
+      </select>
+      <button type="submit"><i class="fas fa-sign-in-alt"></i> Login</button>
+    </form>
+  </div>
+</body>
+</html>

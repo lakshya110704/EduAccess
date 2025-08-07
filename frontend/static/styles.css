@@ -1,0 +1,227 @@
+body {
+  font-family: 'Segoe UI', sans-serif;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+.login-body {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background: linear-gradient(to right, rgba(0, 0, 0, 0.7), rgba(30, 30, 30, 0.7));
+  position: relative;
+  backdrop-filter: blur(5px);
+}
+
+.background-blur {
+  background: url('manipal-university-jaipur-featured-2.jpg') center center / cover no-repeat;
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  filter: blur(8px) brightness(0.5);
+}
+
+.login-container {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  padding: 3rem;
+  border-radius: 20px;
+  backdrop-filter: blur(20px);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+  color: white;
+  width: 90%;
+  max-width: 400px;
+  text-align: center;
+}
+
+.login-container input,
+.login-container select,
+.login-container button {
+  width: 100%;
+  padding: 0.8rem;
+  margin: 10px 0;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+}
+
+.login-container input,
+.login-container select {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+}
+
+.login-container select {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+  width: 100%;
+  padding: 0.8rem;
+  margin: 10px 0;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  box-sizing: border-box;
+}
+
+.login-container input::placeholder {
+  color: #ddd;
+}
+
+.login-container button {
+  background-color: #00bfa6;
+  color: white;
+  font-weight: bold;
+  transition: background-color 0.3s ease;
+}
+
+.login-container button:hover {
+  background-color: #009688;
+}
+
+.logo {
+  width: 150px;
+  height: auto;
+  display: block;
+  margin: 0 auto 20px auto;
+}
+.dashboard-body {
+  margin: 0;
+  padding: 0;
+  background: linear-gradient(to right, rgba(0,0,0,0.7), rgba(0,0,0,0.8));
+  height: 100vh;
+  overflow-y: auto;
+  color: white;
+  position: relative;
+}
+
+.background-blur {
+  background: url('assets/university.jpg') center center / cover no-repeat;
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  filter: blur(8px) brightness(0.6);
+}
+
+.dashboard-header {
+  background-color: rgba(0, 100, 80, 0.8);
+  padding: 1rem 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+}
+
+.nav-logo {
+  width: 40px;
+  height: auto;
+}
+.dashboard-header h2 {
+  margin: 0;
+}
+
+.dashboard-header nav {
+  margin-top: 0.5rem;
+}
+
+.dashboard-header nav a {
+  margin-right: 15px;
+  color: #b2fefa;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+.dashboard-header nav a:hover {
+  text-decoration: underline;
+}
+
+.dashboard {
+  padding: 2rem;
+}
+
+section {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 12px;
+  margin-bottom: 2rem;
+  padding: 1.5rem;
+  backdrop-filter: blur(10px);
+  box-shadow: 0 0 15px rgba(0,0,0,0.2);
+}
+
+section h3 {
+  color: #00ffc8;
+  margin-bottom: 1rem;
+}
+
+input, select, button {
+  width: 100%;
+  max-width: 400px;
+  padding: 0.8rem;
+  margin-top: 10px;
+  border-radius: 6px;
+  border: none;
+  font-size: 1rem;
+}
+
+input, select {
+  background-color: rgba(255,255,255,0.1);
+  color: white;
+}
+
+input::placeholder {
+  color: #ccc;
+}
+
+button {
+  background-color: #00bfa6;
+  color: white;
+  font-weight: bold;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+button:hover {
+  background-color: #009688;
+}
+
+table {
+  width: 100%;
+  color: white;
+  border-collapse: collapse;
+}
+
+th, td {
+  padding: 10px;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+  text-align: left;
+}
+
+.status-free {
+  color: #00e676;
+  font-weight: bold;
+}
+
+.status-busy {
+  color: #ff9800;
+  font-weight: bold;
+}
+
+ul#notification-list {
+  list-style: none;
+  padding-left: 0;
+}
+table button {
+  background: transparent;
+  color: white;
+  border: none;
+  cursor: pointer;
+  font-size: 1.2rem;
+  margin-right: 8px;
+  transition: transform 0.2s ease;
+}
+
+table button:hover {
+  transform: scale(1.2);
+}

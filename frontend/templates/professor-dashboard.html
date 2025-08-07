@@ -1,0 +1,52 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>EduAccess – Professor Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <link rel="stylesheet" href="/static/styles.css">
+  <script src="/static/script.js" defer></script>
+</head>
+<body class="dashboard-body">
+
+  <!-- Background image blur -->
+  <div class="background-blur"></div>
+
+  <!-- Header -->
+  <header class="dashboard-header">
+    <img src="{% static 'assets/logo.png' %}" class="nav-logo" alt="EduAccess Logo">
+    <h2><i class="fas fa-chalkboard-teacher"></i> Welcome, Professor</h2>
+    <nav>
+      <a href="#availability"><i class="fas fa-toggle-on"></i> Availability</a>
+      <a href="#appointments"><i class="fas fa-calendar-alt"></i> Appointments</a>
+    </nav>
+  </header>
+
+  <!-- Main Content -->
+  <main class="dashboard">
+
+    <!-- Update Availability Section -->
+    <section id="availability">
+      <h3><i class="fas fa-toggle-on"></i> Update Availability</h3>
+      <p>Select your current status:</p>
+      <label><input type="radio" name="status" value="Free" id="status-free"> Free</label><br>
+      <label><input type="radio" name="status" value="Busy" id="status-busy"> Busy</label><br>
+      <label><input type="radio" name="status" value="Unavailable" id="status-unavailable"> Unavailable</label>
+    </section>
+
+    <!-- Manage Appointments Section -->
+    <section id="appointments">
+      <h3><i class="fas fa-calendar-alt"></i> Manage Appointments</h3>
+      <table>
+        <thead><tr><th>Student</th><th>Time</th><th>Action</th></tr></thead>
+        <tbody id="appointment-table">
+          <!-- Dynamic rows inserted via script.js -->
+        </tbody>
+      </table>
+    </section>
+
+  </main>
+</body>
+</html>

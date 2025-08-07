@@ -1,0 +1,83 @@
+{% load static %}
+{% with professors=professors %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>EduAccess – Student Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <link rel="stylesheet" href="/static/styles.css">
+  <script src="/static/script.js" defer></script>
+</head>
+<body class="dashboard-body">
+
+  <!-- Background image blur -->
+  <div class="background-blur"></div>
+
+  <!-- Header -->
+  <header class="dashboard-header">
+    <img src="{% static 'assets/logo.png' %}" class="nav-logo" alt="EduAccess Logo">
+    <h2><i class="fas fa-user-graduate"></i> Welcome, Student</h2>
+    <nav>
+      <a href="#availability"><i class="fas fa-signal"></i> Availability</a>
+      <a href="#locator"><i class="fas fa-map-marker-alt"></i> Locator</a>
+      <a href="#appointment"><i class="fas fa-calendar-plus"></i> Appointment</a>
+      <a href="#notifications"><i class="fas fa-bell"></i> Notifications</a>
+    </nav>
+  </header>
+
+  <!-- Main Content -->
+  <main class="dashboard">
+
+    <!-- Availability Section -->
+    <section id="availability">
+      <h3><i class="fas fa-signal"></i> Professor Availability</h3>
+      <table>
+        <thead><tr><th>Professor</th><th>Status</th></tr></thead>
+        <tbody id="availability-table">
+          {% for professor in professors %}
+            <tr>
+              <td>{{ professor.username }}</td>
+              <td>{{ professor.availability }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </section>
+
+    <!-- Cabin Locator -->
+    <section id="locator">
+      <h3><i class="fas fa-map-marker-alt"></i> Cabin Locator</h3>
+      <input type="text" placeholder="Enter Professor Name">
+      <button onclick="alert('Cabin: Block A, Room 105')"><i class="fas fa-search-location"></i> Find Cabin</button>
+    </section>
+
+    <!-- Appointment Booking -->
+    <section id="appointment">
+      <h3><i class="fas fa-calendar-check"></i> Book Appointment</h3>
+      <label>Professor:
+        <select id="professor-select">
+          {% for professor in professors %}
+            <option value="{{ professor.id }}">{{ professor.username }}</option>
+          {% endfor %}
+        </select>
+      </label>
+      <label>Time Slot:
+        <input type="datetime-local" id="appointment-datetime">
+      </label>
+      <button id="appointment"><i class="fas fa-check-circle"></i> Submit</button>
+    </section>
+
+    <!-- Notifications -->
+    <section id="notifications">
+      <h3><i class="fas fa-bell"></i> Notifications</h3>
+      <ul id="notification-list">
+        <!-- Populated via JS -->
+      </ul>
+    </section>
+
+  </main>
+{% endwith %}
+</body>
+</html>
