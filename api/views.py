@@ -68,34 +68,51 @@ from django.contrib.auth import authenticate, login
 from django.contrib.auth import get_user_model
 from django.contrib import messages
 from django.shortcuts import render, redirect
+from django.utils.http import url_has_allowed_host_and_scheme
+from django.conf import settings
+
 
 def login_view(request):
+    """Authenticate user and redirect to the correct dashboard.
+    Falls back to the user's stored role if no role is selected in the form.
+    Also respects an optional `next` parameter when it's a safe local URL.
+    """
     if request.method == 'POST':
         username = request.POST.get('username')
         password = request.POST.get('password')
-        role = request.POST.get('role')
+        selected_role = (request.POST.get('role') or '').strip().lower()
 
         user = authenticate(request, username=username, password=password)
-
-        if user is not None:
-            login(request, user)
-            user_role = user.role.lower() if user.role else ''
-            selected_role = role.lower() if role else ''
-
-            if selected_role == 'student' and user_role == 'student':
-                return redirect('/student/')
-            elif selected_role == 'professor' and user_role == 'professor':
-                return redirect('/professor/')
-            elif selected_role == 'admin' and user.is_superuser:
-                return redirect('/admin/')
-            else:
-                messages.error(request, 'Selected role does not match your profile.')
-                return redirect('/login/')
-        else:
+        if user is None:
             messages.error(request, 'Invalid username or password.')
             return redirect('/login/')
-    else:
-        return render(request, 'login.html')
+
+        # Successful auth: log the user in
+        login(request, user)
+
+        # If a safe `next` URL is provided, honor it first
+        next_url = request.POST.get('next') or request.GET.get('next')
+        if next_url and url_has_allowed_host_and_scheme(next_url, allowed_hosts={request.get_host()}):
+            return redirect(next_url)
+
+        # Determine effective role: prefer explicit selection, else user's stored role
+        user_role = (getattr(user, 'role', '') or '').strip().lower()
+        effective_role = selected_role or user_role
+
+        # Redirect by role
+        if effective_role == 'student':
+            return redirect('/student/')
+        if effective_role == 'professor':
+            return redirect('/professor/')
+        if effective_role == 'admin' or getattr(user, 'is_superuser', False):
+            return redirect('/admin/')
+
+        # If we reach here, we couldn't resolve a role cleanly
+        messages.error(request, 'Your account does not have a recognized role. Please contact an admin.')
+        return redirect('/login/')
+
+    # GET request → render login page
+    return render(request, 'login.html')
 
 @login_required
 def current_user_id_view(request):
@@ -106,8 +123,11 @@ def student_dashboard(request):
     professors = CustomUser.objects.filter(role__iexact='professor')
     return render(request, 'student-dashboard.html', {'professors': professors})
 
-from django.http import JsonResponse
-from .models import CustomUser
+
+@login_required
+def professor_dashboard(request):
+    return render(request, 'professor-dashboard.html')
+
 
 @login_required
 def get_professors_data(request):

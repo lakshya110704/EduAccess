@@ -26,7 +26,10 @@ SECRET_KEY = 'django-insecure-@61_^q)^+43b+^f&m#87q2mo53*-9m1dz)7bnbu@15c5nhq38*
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
+CSRF_TRUSTED_ORIGINS = [
+    'https://exceptional-diligently-raymond.ngrok-free.dev',
+]
 
 
 # Application definition
@@ -59,7 +62,7 @@ ROOT_URLCONF = 'eduaccess_backend.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [BASE_DIR / 'frontend' / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
