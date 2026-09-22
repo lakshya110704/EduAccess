@@ -100,6 +100,7 @@ EduAccess/
 ## 🙌 Contributors
 
 - Lakshya Mehta
+- Mohini
 
 ---
 
