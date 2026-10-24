@@ -1,6 +1,6 @@
 # EduAccess
 
-Django 5.2 LTS + DRF backend with server-rendered templates and vanilla JS. Faculty
+Django 6.1 + DRF backend with server-rendered templates and vanilla JS. Faculty
 availability, cabin locator and appointment booking for students and professors.
 
 ## Layout
@@ -26,7 +26,7 @@ All endpoints need a logged-in session; writes need the `X-CSRFToken` header.
 
 ## Running locally
 
-Needs Python 3.10+ (Django 5.2). The old `eduaccess-env` / `.venv` folders are Python 3.9 and too old; recreate:
+Needs Python 3.12+ (Django 6.1). The old `eduaccess-env` / `.venv` folders are Python 3.9 and too old; recreate:
 
 ```bash
 uv venv --python 3.12 .venv && source .venv/bin/activate && uv pip install -r requirements.txt

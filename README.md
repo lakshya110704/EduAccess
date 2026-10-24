@@ -25,7 +25,7 @@ EduAccess is a full-stack web platform designed to streamline faculty-student in
 | Layer        | Technology                     |
 |--------------|--------------------------------|
 | Frontend     | HTML, CSS, JavaScript (Vanilla) |
-| Backend      | Django 5.2 LTS, Django REST Framework |
+| Backend      | Django 6.1, Django REST Framework |
 | Database     | PostgreSQL                     |
 | Real-time    | JavaScript polling (setInterval) |
 | Deployment   | (Planned) Docker + Heroku/Render |
@@ -56,7 +56,7 @@ EduAccess/
 
 ## 🧪 Local Setup
 
-Requires Python 3.10+ and PostgreSQL (or SQLite for a quick local run).
+Requires Python 3.12+ and PostgreSQL (or SQLite for a quick local run).
 
 ```bash
 git clone https://github.com/lakshya110704/EduAccess.git
