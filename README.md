@@ -80,6 +80,16 @@ DB_ENGINE=sqlite DJANGO_DEBUG=True python manage.py test api
 
 Every push also runs the suite on GitHub Actions against PostgreSQL 16 (`.github/workflows/ci.yml`).
 
+### Dependencies
+
+`requirements.in` lists direct dependencies; `requirements.txt` is the generated lock file (every package pinned, with hashes). To change a dependency, edit `requirements.in` and regenerate:
+
+```bash
+uv pip compile requirements.in -o requirements.txt --generate-hashes --python-version 3.12 --python-platform linux
+```
+
+Dependabot opens weekly pull requests for available updates; CI tests each before it is merged.
+
 ## 🚀 Production notes
 
 - Set `DJANGO_SECRET_KEY`, `DJANGO_ALLOWED_HOSTS`, `DJANGO_CSRF_TRUSTED_ORIGINS` and the `DB_*` variables; leave `DJANGO_DEBUG` unset.

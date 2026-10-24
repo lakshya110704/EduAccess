@@ -36,6 +36,17 @@ python manage.py migrate && python manage.py seed_demo && python manage.py runse
 
 Tests: `DB_ENGINE=sqlite DJANGO_DEBUG=True python manage.py test api`
 
+## Dependencies
+
+- `requirements.in` — direct dependencies (ranges), edited by hand.
+- `requirements.txt` — generated lock file: every package (direct + transitive) pinned exactly, with
+  hashes, resolved for Python 3.12 on Linux. Never edit by hand; CI, Docker and production install from it.
+- To add or bump a package: edit `requirements.in`, then
+  `uv pip compile requirements.in -o requirements.txt --generate-hashes --python-version 3.12 --python-platform linux`
+  (add `--upgrade-package <name>` to bump one package), run the tests, commit both files.
+- Updates are deliberate: `.github/dependabot.yml` opens weekly PRs for pip packages (minor/patch grouped)
+  and GitHub Actions; CI tests each, a human merges.
+
 ## CI
 
 `.github/workflows/ci.yml` (GitHub Actions) runs on every push: Python 3.12, a PostgreSQL 16

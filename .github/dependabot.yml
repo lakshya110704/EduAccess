@@ -1,0 +1,17 @@
+# Dependabot only opens pull requests; nothing is merged automatically.
+# CI runs the test suite on each one before a human decides to merge.
+version: 2
+updates:
+  - package-ecosystem: pip
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    groups:
+      python-minor-and-patch:
+        update-types: [minor, patch]
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly

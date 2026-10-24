@@ -1,0 +1,11 @@
+# Direct dependencies. Edit this file, then regenerate the lock file:
+#   uv pip compile requirements.in -o requirements.txt --generate-hashes --python-version 3.12 --python-platform linux
+# Never edit requirements.txt by hand.
+Django>=5.2,<6.0
+djangorestframework>=3.15,<4.0
+django-filter>=24.0
+django-cors-headers>=4.4
+python-decouple>=3.8
+psycopg[binary]>=3.2
+gunicorn>=23.0
+whitenoise>=6.7
