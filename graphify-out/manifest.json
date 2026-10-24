@@ -114,9 +114,9 @@
     "semantic_hash": "77cd0a20149d49f63a0b84ed1f4d58fd"
   },
   "README.md": {
-    "mtime": 1792854529.9161212,
-    "seen": 1792854531.177975,
-    "ast_hash": "2abfe917447bcc15f615177f52d9190b",
+    "mtime": 1792858040.7444189,
+    "seen": 1792858048.970818,
+    "ast_hash": "597958703019230b832cf8c476ebbc43",
     "semantic_hash": ""
   },
   "frontend/templates/login.html": {
@@ -138,9 +138,9 @@
     "semantic_hash": ""
   },
   "requirements.txt": {
-    "mtime": 1792854186.9845622,
-    "seen": 1792854531.177978,
-    "ast_hash": "ac916ff4efe0f839d6be3333b14ad311",
+    "mtime": 1792858014.8748503,
+    "seen": 1792858048.9708211,
+    "ast_hash": "b72b1b9599f700d60b7527f5afb318a6",
     "semantic_hash": ""
   },
   "frontend/static/assets/background.jpg": {
@@ -198,9 +198,21 @@
     "semantic_hash": ""
   },
   "CLAUDE.md": {
-    "mtime": 1792854529.7821486,
-    "seen": 1792854531.177974,
-    "ast_hash": "4f0f846bfea7b772b27aad6e51f9dd9c",
+    "mtime": 1792858040.7481306,
+    "seen": 1792858048.970817,
+    "ast_hash": "8d390677fe3f9fda67360d23cd148699",
+    "semantic_hash": ""
+  },
+  ".github/workflows/ci.yml": {
+    "mtime": 1792855473.9343584,
+    "seen": 1792857364.6129532,
+    "ast_hash": "b32a6da4455fb171d9d991cd83c46b0d",
+    "semantic_hash": ""
+  },
+  ".github/dependabot.yml": {
+    "mtime": 1792857156.163959,
+    "seen": 1792857364.61295,
+    "ast_hash": "d73e37e167357945b6d12fc157db2c31",
     "semantic_hash": ""
   }
 }
