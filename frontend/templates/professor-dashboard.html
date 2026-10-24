@@ -6,45 +6,53 @@
   <title>EduAccess – Professor Dashboard</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
-  <link rel="stylesheet" href="/static/styles.css">
-  <script src="/static/script.js" defer></script>
+  <link rel="stylesheet" href="{% static 'styles.css' %}">
+  <script src="{% static 'script.js' %}" defer></script>
 </head>
-<body class="dashboard-body">
+<body class="dashboard-body" data-page="professor">
 
-  <!-- Background image blur -->
   <div class="background-blur"></div>
 
-  <!-- Header -->
   <header class="dashboard-header">
     <img src="{% static 'assets/logo.png' %}" class="nav-logo" alt="EduAccess Logo">
-    <h2><i class="fas fa-chalkboard-teacher"></i> Welcome, Professor</h2>
-    <nav>
-      <a href="#availability"><i class="fas fa-toggle-on"></i> Availability</a>
-      <a href="#appointments"><i class="fas fa-calendar-alt"></i> Appointments</a>
-    </nav>
+    <h2><i class="fas fa-chalkboard-teacher"></i> Welcome, {{ request.user.get_full_name|default:request.user.username }}</h2>
+    <div class="header-right">
+      <nav>
+        <a href="#availability"><i class="fas fa-toggle-on"></i> Availability</a>
+        <a href="#appointments"><i class="fas fa-calendar-alt"></i> Appointments</a>
+        <a href="#notifications"><i class="fas fa-bell"></i> Notifications</a>
+      </nav>
+      <form method="post" action="{% url 'logout' %}" class="logout-form">
+        {% csrf_token %}
+        <button type="submit"><i class="fas fa-sign-out-alt"></i> Log out</button>
+      </form>
+    </div>
   </header>
 
-  <!-- Main Content -->
   <main class="dashboard">
 
-    <!-- Update Availability Section -->
     <section id="availability">
       <h3><i class="fas fa-toggle-on"></i> Update Availability</h3>
-      <p>Select your current status:</p>
-      <label><input type="radio" name="status" value="Free" id="status-free"> Free</label><br>
-      <label><input type="radio" name="status" value="Busy" id="status-busy"> Busy</label><br>
-      <label><input type="radio" name="status" value="Unavailable" id="status-unavailable"> Unavailable</label>
+      <p>Select your current status{% if request.user.cabin_number %} (cabin {{ request.user.cabin_number }}){% endif %}:</p>
+      <div class="radio-row">
+        <label><input type="radio" name="availability-status" value="Free" {% if request.user.availability_status == "Free" %}checked{% endif %}> Free</label>
+        <label><input type="radio" name="availability-status" value="Busy" {% if request.user.availability_status == "Busy" %}checked{% endif %}> Busy</label>
+        <label><input type="radio" name="availability-status" value="Unavailable" {% if request.user.availability_status == "Unavailable" %}checked{% endif %}> Unavailable</label>
+      </div>
+      <div id="availability-message" class="flash form-message" role="status"></div>
     </section>
 
-    <!-- Manage Appointments Section -->
     <section id="appointments">
       <h3><i class="fas fa-calendar-alt"></i> Manage Appointments</h3>
       <table>
-        <thead><tr><th>Student</th><th>Time</th><th>Action</th></tr></thead>
-        <tbody id="appointment-table">
-          <!-- Dynamic rows inserted via script.js -->
-        </tbody>
+        <thead><tr><th>Student</th><th>Time</th><th>Status</th><th>Action</th></tr></thead>
+        <tbody id="professor-appointment-table"></tbody>
       </table>
+    </section>
+
+    <section id="notifications">
+      <h3><i class="fas fa-bell"></i> Notifications</h3>
+      <ul id="notification-list"></ul>
     </section>
 
   </main>

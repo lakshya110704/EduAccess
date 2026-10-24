@@ -6,7 +6,7 @@ EduAccess is a full-stack web platform designed to streamline faculty-student in
 
 ## 🚀 Features
 
-- 🔐 **Role-Based Login**: Students and Professors access distinct dashboards.
+- 🔐 **Role-Based Login**: Users land on the dashboard for their account role; dashboards and API are permission-checked server-side.
 - 👨‍🏫 **Professor Dashboard**:  
   - Update availability status (Free, Busy, Unavailable)  
   - View and manage appointment requests
@@ -14,7 +14,7 @@ EduAccess is a full-stack web platform designed to streamline faculty-student in
   - Check real-time professor availability  
   - Book appointments by selecting date & time  
   - Search professor cabin locations
-- 🔔 **Notifications**: Students receive confirmations for appointments.
+- 🔔 **Notifications**: Professors are notified of new requests; students are notified when a request is confirmed or cancelled.
 - ♻️ **Auto Refresh**: Dashboards auto-update availability every 10 seconds.
 - 🎨 **Responsive UI**: Clean, modern interface with background blur, animations, and dropdown interactions.
 
@@ -25,7 +25,7 @@ EduAccess is a full-stack web platform designed to streamline faculty-student in
 | Layer        | Technology                     |
 |--------------|--------------------------------|
 | Frontend     | HTML, CSS, JavaScript (Vanilla) |
-| Backend      | Django, Django REST Framework  |
+| Backend      | Django 5.2 LTS, Django REST Framework |
 | Database     | PostgreSQL                     |
 | Real-time    | JavaScript polling (setInterval) |
 | Deployment   | (Planned) Docker + Heroku/Render |
@@ -56,36 +56,33 @@ EduAccess/
 
 ## 🧪 Local Setup
 
-1. **Clone the repository**
-   ```bash
-   git clone https://github.com/your-username/EduAccess.git
-   cd EduAccess
-   ```
+Requires Python 3.10+ and PostgreSQL (or SQLite for a quick local run).
 
-2. **Create a virtual environment**
-   ```bash
-   python3 -m venv eduaccess-env
-   source eduaccess-env/bin/activate
-   ```
+```bash
+git clone https://github.com/lakshya110704/EduAccess.git
+cd EduAccess
+python3 -m venv .venv && source .venv/bin/activate
+pip install -r requirements.txt
+cp .env.example .env          # fill in values; DJANGO_DEBUG=True + DB_ENGINE=sqlite for local dev
+python manage.py migrate
+python manage.py seed_demo    # optional demo users (DEBUG only)
+python manage.py runserver
+```
 
-3. **Install dependencies**
-   ```bash
-   pip install -r requirements.txt
-   ```
+Open `http://127.0.0.1:8000/` and log in; you are sent to the dashboard for your role.
+Admin panel: `http://127.0.0.1:8000/admin/` (create a user with `python manage.py createsuperuser`).
 
-4. **Configure PostgreSQL and `.env` (if applicable)**
+Run the tests:
 
-5. **Run the server**
-   ```bash
-   python manage.py makemigrations
-   python manage.py migrate
-   python manage.py runserver
-   ```
+```bash
+DB_ENGINE=sqlite DJANGO_DEBUG=True python manage.py test api
+```
 
-6. **Access in Browser**
-   - Student Dashboard: `http://127.0.0.1:8000/student/`
-   - Professor Dashboard: `http://127.0.0.1:8000/professor/`
-   - Admin Panel: `http://127.0.0.1:8000/admin/`
+## 🚀 Production notes
+
+- Set `DJANGO_SECRET_KEY`, `DJANGO_ALLOWED_HOSTS`, `DJANGO_CSRF_TRUSTED_ORIGINS` and the `DB_*` variables; leave `DJANGO_DEBUG` unset.
+- `python manage.py collectstatic --noinput`, then run `gunicorn eduaccess_backend.wsgi` behind an HTTPS proxy that sets `X-Forwarded-Proto`.
+- `/healthz/` returns `{"status": "ok"}` for load-balancer checks.
 
 ---
 

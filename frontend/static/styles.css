@@ -16,7 +16,7 @@ body {
 }
 
 .background-blur {
-  background: url('manipal-university-jaipur-featured-2.jpg') center center / cover no-repeat;
+  background: url('assets/background.jpg') center center / cover no-repeat;
   position: absolute;
   inset: 0;
   z-index: -1;
@@ -97,7 +97,7 @@ body {
 }
 
 .background-blur {
-  background: url('assets/university.jpg') center center / cover no-repeat;
+  background: url('assets/background.jpg') center center / cover no-repeat;
   position: fixed;
   inset: 0;
   z-index: -1;
@@ -225,3 +225,69 @@ table button {
 table button:hover {
   transform: scale(1.2);
 }
+
+.status-unavailable {
+  color: #ef5350;
+  font-weight: bold;
+}
+
+.status-pending { color: #ffd54f; font-weight: bold; }
+.status-confirmed { color: #00e676; font-weight: bold; }
+.status-cancelled { color: #9e9e9e; font-weight: bold; }
+
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.logout-form button {
+  width: auto;
+  margin: 0;
+  padding: 0.4rem 0.9rem;
+  background-color: rgba(255, 255, 255, 0.15);
+}
+
+.flash {
+  padding: 0.7rem 1rem;
+  border-radius: 8px;
+  margin: 0.5rem 0;
+  max-width: 400px;
+}
+
+.flash-error { background: rgba(239, 83, 80, 0.35); }
+.flash-success { background: rgba(0, 230, 118, 0.25); }
+
+.form-message:empty { display: none; }
+
+.empty-row td {
+  color: #bbb;
+  font-style: italic;
+}
+
+table button.action-confirm,
+table button.action-cancel {
+  width: auto;
+  font-size: 0.9rem;
+  padding: 0.3rem 0.7rem;
+  border-radius: 6px;
+  margin-top: 0;
+}
+
+table button.action-confirm { background: #00bfa6; }
+table button.action-cancel { background: rgba(239, 83, 80, 0.7); }
+
+.radio-row label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-right: 1.5rem;
+}
+
+.radio-row input {
+  width: auto;
+  margin: 0;
+}
+
+#cabin-results li { margin: 0.4rem 0; }

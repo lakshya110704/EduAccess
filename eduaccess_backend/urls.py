@@ -1,16 +1,21 @@
 from django.contrib import admin
-from django.urls import path, include
-from django.views.generic import TemplateView
-from api.views import login_view, student_dashboard
+from django.http import JsonResponse
+from django.urls import include, path
+
+from api.views import login_view, logout_view, professor_dashboard, student_dashboard
+
+
+def healthz(request):
+    return JsonResponse({'status': 'ok'})
+
 
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include('api.urls')),
+    path('', login_view, name='home'),
     path('login/', login_view, name='login'),
-    path('', login_view, name='login'),  # 👈 Root route points to login
-    path('api-auth/', include('rest_framework.urls')),
-
-    # Frontend routes
+    path('logout/', logout_view, name='logout'),
     path('student/', student_dashboard, name='student_dashboard'),
-    path('professor/', TemplateView.as_view(template_name='professor-dashboard.html'), name='professor_dashboard'),
+    path('professor/', professor_dashboard, name='professor_dashboard'),
+    path('healthz/', healthz, name='healthz'),
 ]

@@ -1,136 +1,161 @@
-from rest_framework import viewsets, permissions, status, filters
-from rest_framework.response import Response
+from django.contrib import messages
+from django.contrib.auth import authenticate, login, logout
+from django.db import transaction
+from django.shortcuts import redirect, render
+from django.utils.http import url_has_allowed_host_and_scheme
+from django.views.decorators.http import require_POST
+from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import filters, generics, mixins, viewsets
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.permissions import IsAuthenticated
-from django_filters.rest_framework import DjangoFilterBackend
-from .models import Appointment, Notification, CustomUser
-from .serializers import AppointmentSerializer, NotificationSerializer, CustomUserSerializer
-from django.http import JsonResponse
-from django.contrib.auth.decorators import login_required
 
-class AppointmentViewSet(viewsets.ModelViewSet):
-    queryset = Appointment.objects.all()
-    serializer_class = AppointmentSerializer
-    permission_classes = [IsAuthenticated]  # Login required
+from .models import Appointment, CustomUser, Notification
+from .permissions import IsAppointmentParticipant, dashboard_for, role_required
+from .serializers import (
+    AppointmentSerializer,
+    AppointmentStatusSerializer,
+    MeSerializer,
+    NotificationSerializer,
+    ProfessorSerializer,
+)
+
+
+def _name(user):
+    return user.get_full_name() or user.username
+
+
+class AppointmentViewSet(
+    mixins.CreateModelMixin,
+    mixins.ListModelMixin,
+    mixins.RetrieveModelMixin,
+    mixins.UpdateModelMixin,
+    viewsets.GenericViewSet,
+):
+    """Students book; professors confirm or cancel; students can cancel their own.
+    Appointments are never deleted, only cancelled."""
+
+    permission_classes = [IsAuthenticated, IsAppointmentParticipant]
     filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
     filterset_fields = ['status']
     ordering_fields = ['appointment_time']
+    http_method_names = ['get', 'post', 'patch', 'head', 'options']
 
     def get_queryset(self):
         user = self.request.user
-
+        qs = Appointment.objects.select_related('student', 'professor').order_by('appointment_time')
+        if user.is_staff:
+            return qs
         if user.role == 'professor':
-            return Appointment.objects.filter(professor=user).order_by('appointment_time')
+            return qs.filter(professor=user)
+        if user.role == 'student':
+            return qs.filter(student=user)
+        return qs.none()
 
-        elif user.role == 'student':
-            return Appointment.objects.filter(student=user).order_by('appointment_time')
+    def get_serializer_class(self):
+        if self.action in ('update', 'partial_update'):
+            return AppointmentStatusSerializer
+        return AppointmentSerializer
 
-        return Appointment.objects.all().order_by('appointment_time')
-
+    @transaction.atomic
     def perform_create(self, serializer):
         user = self.request.user
-
         if user.role != 'student':
-            raise PermissionDenied("Only students can create appointments.")
+            raise PermissionDenied('Only students can book appointments.')
+        appt = serializer.save(student=user)
+        Notification.objects.create(
+            user=appt.professor,
+            message=f"New appointment request from {_name(user)} for {appt.appointment_time:%d %b %Y, %H:%M}.",
+        )
 
-        # Auto-fill student; professor must still be selected in frontend
-        serializer.save(student=user)
-
+    @transaction.atomic
     def perform_update(self, serializer):
-        instance = serializer.save()
+        appt = serializer.save()
+        actor = self.request.user
+        recipient = appt.professor if actor == appt.student else appt.student
+        Notification.objects.create(
+            user=recipient,
+            message=f"Your appointment with {_name(actor)} on {appt.appointment_time:%d %b %Y, %H:%M} is now {appt.status}.",
+        )
 
-        if 'status' in serializer.validated_data:
-            Notification.objects.create(
-                user=instance.student,
-                message=f"Your appointment with {instance.professor.username} is now {instance.status}."
-            )
+    def update(self, request, *args, **kwargs):
+        kwargs['partial'] = True
+        response = super().update(request, *args, **kwargs)
+        response.data = AppointmentSerializer(self.get_object(), context=self.get_serializer_context()).data
+        return response
+
 
 class NotificationViewSet(viewsets.ReadOnlyModelViewSet):
-    queryset = Notification.objects.all()
     serializer_class = NotificationSerializer
-    permission_classes = [permissions.AllowAny]
 
     def get_queryset(self):
-        user = self.request.user
-        if not user.is_authenticated:
-            return Notification.objects.none()
-        return Notification.objects.filter(user=user).order_by('-sent_at')
+        return Notification.objects.filter(user=self.request.user).order_by('-sent_at')
 
-class CustomUserViewSet(viewsets.ModelViewSet):
-    queryset = CustomUser.objects.all()
-    serializer_class = CustomUserSerializer
-    permission_classes = [IsAuthenticated]
+
+class ProfessorViewSet(viewsets.ReadOnlyModelViewSet):
+    """Directory of professors: availability and cabin. Searchable by name."""
+
+    serializer_class = ProfessorSerializer
+    filter_backends = [filters.SearchFilter]
+    search_fields = ['username', 'first_name', 'last_name', 'cabin_number']
 
     def get_queryset(self):
-        return CustomUser.objects.filter(role__iexact='professor')
+        return CustomUser.objects.filter(role='professor', is_active=True).order_by('first_name', 'username')
 
-from django.contrib.auth import authenticate, login
-from django.contrib.auth import get_user_model
-from django.contrib import messages
-from django.shortcuts import render, redirect
-from django.utils.http import url_has_allowed_host_and_scheme
-from django.conf import settings
+
+class MeView(generics.RetrieveUpdateAPIView):
+    """GET or PATCH the logged-in user (professors set their availability here)."""
+
+    serializer_class = MeSerializer
+    http_method_names = ['get', 'patch', 'head', 'options']
+
+    def get_object(self):
+        return self.request.user
+
+
+# Page views
 
 
 def login_view(request):
-    """Authenticate user and redirect to the correct dashboard.
-    Falls back to the user's stored role if no role is selected in the form.
-    Also respects an optional `next` parameter when it's a safe local URL.
-    """
-    if request.method == 'POST':
-        username = request.POST.get('username')
-        password = request.POST.get('password')
-        selected_role = (request.POST.get('role') or '').strip().lower()
+    """Authenticate and send the user to the dashboard for their stored role.
+    Honors a `next` parameter when it is a safe local URL."""
+    next_url = request.POST.get('next') or request.GET.get('next') or ''
+    safe_next = next_url if url_has_allowed_host_and_scheme(
+        next_url, allowed_hosts={request.get_host()}, require_https=request.is_secure()
+    ) else ''
 
-        user = authenticate(request, username=username, password=password)
+    if request.user.is_authenticated and request.method == 'GET':
+        target = dashboard_for(request.user)
+        if target:
+            return redirect(target)
+
+    if request.method == 'POST':
+        user = authenticate(request, username=request.POST.get('username'), password=request.POST.get('password'))
         if user is None:
             messages.error(request, 'Invalid username or password.')
-            return redirect('/login/')
+            return render(request, 'login.html', {'next': safe_next}, status=401)
 
-        # Successful auth: log the user in
+        target = dashboard_for(user)
+        if target is None:
+            messages.error(request, 'Your account does not have a role yet. Please contact an admin.')
+            return render(request, 'login.html', {'next': safe_next}, status=403)
+
         login(request, user)
+        return redirect(safe_next or target)
 
-        # If a safe `next` URL is provided, honor it first
-        next_url = request.POST.get('next') or request.GET.get('next')
-        if next_url and url_has_allowed_host_and_scheme(next_url, allowed_hosts={request.get_host()}):
-            return redirect(next_url)
+    return render(request, 'login.html', {'next': safe_next})
 
-        # Determine effective role: prefer explicit selection, else user's stored role
-        user_role = (getattr(user, 'role', '') or '').strip().lower()
-        effective_role = selected_role or user_role
 
-        # Redirect by role
-        if effective_role == 'student':
-            return redirect('/student/')
-        if effective_role == 'professor':
-            return redirect('/professor/')
-        if effective_role == 'admin' or getattr(user, 'is_superuser', False):
-            return redirect('/admin/')
+@require_POST
+def logout_view(request):
+    logout(request)
+    return redirect('login')
 
-        # If we reach here, we couldn't resolve a role cleanly
-        messages.error(request, 'Your account does not have a recognized role. Please contact an admin.')
-        return redirect('/login/')
 
-    # GET request → render login page
-    return render(request, 'login.html')
-
-@login_required
-def current_user_id_view(request):
-    return JsonResponse({'id': request.user.id})
-
-@login_required
+@role_required('student')
 def student_dashboard(request):
-    professors = CustomUser.objects.filter(role__iexact='professor')
-    return render(request, 'student-dashboard.html', {'professors': professors})
+    return render(request, 'student-dashboard.html')
 
 
-@login_required
+@role_required('professor')
 def professor_dashboard(request):
     return render(request, 'professor-dashboard.html')
-
-
-@login_required
-def get_professors_data(request):
-    professors = CustomUser.objects.filter(role='professor')
-    data = [{'username': prof.username, 'availability': prof.availability_status} for prof in professors]
-    return JsonResponse({'professors': data})

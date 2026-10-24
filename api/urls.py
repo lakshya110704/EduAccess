@@ -1,19 +1,14 @@
-from django.urls import path, include
+from django.urls import include, path
 from rest_framework.routers import DefaultRouter
-from .views import AppointmentViewSet, NotificationViewSet, CustomUserViewSet
+
+from .views import AppointmentViewSet, MeView, NotificationViewSet, ProfessorViewSet
 
 router = DefaultRouter()
-router.register(r'appointments', AppointmentViewSet)
-router.register(r'notifications', NotificationViewSet)
-router.register(r'users', CustomUserViewSet, basename='customuser')
+router.register(r'appointments', AppointmentViewSet, basename='appointment')
+router.register(r'notifications', NotificationViewSet, basename='notification')
+router.register(r'professors', ProfessorViewSet, basename='professor')
 
 urlpatterns = [
+    path('me/', MeView.as_view(), name='me'),
     path('', include(router.urls)),
-]
-
-from django.urls import path
-from .views import get_professors_data
-
-urlpatterns += [
-    path('professors/', get_professors_data, name='get_professors_data'),
 ]
