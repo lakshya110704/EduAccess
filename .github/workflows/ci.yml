@@ -1,0 +1,50 @@
+name: CI
+
+on:
+  push:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: eduaccess
+          POSTGRES_PASSWORD: eduaccess
+          POSTGRES_DB: eduaccess
+        ports:
+          - 5432:5432
+        # Don't start the tests until Postgres accepts connections.
+        options: >-
+          --health-cmd "pg_isready -U eduaccess"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      DJANGO_DEBUG: "True"
+      DB_ENGINE: postgresql
+      DB_NAME: eduaccess
+      DB_USER: eduaccess
+      DB_PASSWORD: eduaccess
+      DB_HOST: localhost
+      DB_PORT: "5432"
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Check for missing migrations
+        run: python manage.py makemigrations --check --dry-run
+
+      - name: Run tests
+        run: python manage.py test api

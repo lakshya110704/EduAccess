@@ -36,6 +36,12 @@ python manage.py migrate && python manage.py seed_demo && python manage.py runse
 
 Tests: `DB_ENGINE=sqlite DJANGO_DEBUG=True python manage.py test api`
 
+## CI
+
+`.github/workflows/ci.yml` (GitHub Actions) runs on every push: Python 3.12, a PostgreSQL 16
+service container (so tests run on the same database engine as production), `makemigrations
+--check` to catch missing migrations, then `manage.py test api`.
+
 ## Commits
 
 Never add `Co-Authored-By` or other AI attribution lines to commits or PRs.

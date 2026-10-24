@@ -78,6 +78,8 @@ Run the tests:
 DB_ENGINE=sqlite DJANGO_DEBUG=True python manage.py test api
 ```
 
+Every push also runs the suite on GitHub Actions against PostgreSQL 16 (`.github/workflows/ci.yml`).
+
 ## 🚀 Production notes
 
 - Set `DJANGO_SECRET_KEY`, `DJANGO_ALLOWED_HOSTS`, `DJANGO_CSRF_TRUSTED_ORIGINS` and the `DB_*` variables; leave `DJANGO_DEBUG` unset.
