@@ -85,7 +85,7 @@ Every push also runs the suite on GitHub Actions against PostgreSQL 16 (`.github
 `requirements.in` lists direct dependencies; `requirements.txt` is the generated lock file (every package pinned, with hashes). To change a dependency, edit `requirements.in` and regenerate:
 
 ```bash
-uv pip compile requirements.in -o requirements.txt --generate-hashes --python-version 3.12 --python-platform linux
+uvx --python 3.12 --from pip-tools pip-compile --generate-hashes --strip-extras requirements.in
 ```
 
 Dependabot opens weekly pull requests for available updates; CI tests each before it is merged.

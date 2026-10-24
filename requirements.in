@@ -1,5 +1,5 @@
 # Direct dependencies. Edit this file, then regenerate the lock file:
-#   uv pip compile requirements.in -o requirements.txt --generate-hashes --python-version 3.12 --python-platform linux
+#   uvx --python 3.12 --from pip-tools pip-compile --generate-hashes --strip-extras requirements.in
 # Never edit requirements.txt by hand.
 Django>=6.1.2,<7.0
 djangorestframework>=3.15,<4.0

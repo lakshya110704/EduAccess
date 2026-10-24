@@ -39,10 +39,13 @@ Tests: `DB_ENGINE=sqlite DJANGO_DEBUG=True python manage.py test api`
 ## Dependencies
 
 - `requirements.in` — direct dependencies (ranges), edited by hand.
-- `requirements.txt` — generated lock file: every package (direct + transitive) pinned exactly, with
-  hashes, resolved for Python 3.12 on Linux. Never edit by hand; CI, Docker and production install from it.
+- `requirements.txt` — generated lock file (pip-tools / `pip-compile`): every package (direct +
+  transitive) pinned exactly, with hashes, resolved under Python 3.12. Never edit by hand; CI, Docker and
+  production install from it. pip-tools is used (not `uv pip compile`) because Dependabot can only
+  regenerate pip-compile lock files correctly.
+- `.python-version` (3.12) — tells Dependabot (and uv/pyenv) which Python to resolve with.
 - To add or bump a package: edit `requirements.in`, then
-  `uv pip compile requirements.in -o requirements.txt --generate-hashes --python-version 3.12 --python-platform linux`
+  `uvx --python 3.12 --from pip-tools pip-compile --generate-hashes --strip-extras requirements.in`
   (add `--upgrade-package <name>` to bump one package), run the tests, commit both files.
 - Updates are deliberate: `.github/dependabot.yml` opens weekly PRs for pip packages (minor/patch grouped)
   and GitHub Actions; CI tests each, a human merges.
@@ -67,3 +70,6 @@ A knowledge graph of this codebase lives in `graphify-out/` (`graph.json`, `GRAP
   need to change.
 - Git hooks (post-commit/checkout/merge/rewrite) rebuild the code graph automatically. After
   changing docs or images, run `/graphify --update`.
+- The graph files are tracked in Git. The hook rebuilds them *after* each commit, so they always show
+  as modified afterwards: include the changed `graphify-out/` files in the next commit (the copy on
+  GitHub is therefore one commit behind).
