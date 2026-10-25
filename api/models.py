@@ -15,6 +15,7 @@ AVAILABILITY_CHOICES = (
     ('Unavailable', 'Unavailable'),
 )
 
+
 class CustomUser(AbstractUser):
     role = models.CharField(max_length=20, choices=USER_ROLES)
     availability_status = models.CharField(max_length=20, choices=AVAILABILITY_CHOICES, default='Unavailable')
@@ -37,8 +38,8 @@ class CustomUser(AbstractUser):
     )
 
     def __str__(self):
-        return f"{self.username} ({self.role})"
-    
+        return f'{self.username} ({self.role})'
+
 
 class Appointment(models.Model):
     STATUS_CHOICES = (
@@ -53,12 +54,13 @@ class Appointment(models.Model):
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Pending')
 
     def __str__(self):
-        return f"{self.student.username} → {self.professor.username} @ {self.appointment_time} ({self.status})"
-    
+        return f'{self.student.username} → {self.professor.username} @ {self.appointment_time} ({self.status})'
+
+
 class Notification(models.Model):
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
     message = models.TextField()
     sent_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"To: {self.user.username} → {self.message[:40]}"
+        return f'To: {self.user.username} → {self.message[:40]}'

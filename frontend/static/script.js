@@ -116,7 +116,9 @@ async function loadAppointments() {
         const actions = el("td");
         if (a.status !== "Cancelled") {
           if (isProfessor && a.status === "Pending") {
-            actions.appendChild(actionButton("Confirm", "action-confirm", () => setAppointmentStatus(a.id, "Confirmed")));
+            actions.appendChild(
+              actionButton("Confirm", "action-confirm", () => setAppointmentStatus(a.id, "Confirmed")),
+            );
           }
           actions.appendChild(actionButton("Cancel", "action-cancel", () => setAppointmentStatus(a.id, "Cancelled")));
         }
@@ -126,7 +128,7 @@ async function loadAppointments() {
           el("td", { text: a.status, className: `status-${a.status.toLowerCase()}` }),
           actions,
         ]);
-      })
+      }),
     );
   } catch (error) {
     console.error("Failed to load appointments", error);
@@ -149,8 +151,8 @@ async function loadProfessors() {
               el("td", { text: p.display_name }),
               el("td", { text: p.cabin_number || "—" }),
               el("td", { text: p.availability_status, className: `status-${p.availability_status.toLowerCase()}` }),
-            ])
-          )
+            ]),
+          ),
         );
     }
     // Rebuild the dropdown only if the set of professors changed, so polling
@@ -184,8 +186,8 @@ async function findCabin(event) {
       ...profs.map((p) =>
         el("li", {
           text: `${p.display_name}: ${p.cabin_number ? `Cabin ${p.cabin_number}` : "cabin not set"} · ${p.availability_status}`,
-        })
-      )
+        }),
+      ),
     );
   } catch (error) {
     list.replaceChildren(el("li", { text: error.message }));

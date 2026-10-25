@@ -47,7 +47,9 @@ class ProfessorDirectoryTests(BaseTestCase):
 
     def test_directory_is_read_only(self):
         client = self.as_user(self.student)
-        self.assertEqual(client.patch(f'/api/professors/{self.prof.id}/', {'availability_status': 'Free'}).status_code, 405)
+        self.assertEqual(
+            client.patch(f'/api/professors/{self.prof.id}/', {'availability_status': 'Free'}).status_code, 405
+        )
         self.assertEqual(client.delete(f'/api/professors/{self.prof.id}/').status_code, 405)
         self.assertEqual(client.post('/api/professors/', {'username': 'x'}).status_code, 405)
 
@@ -155,7 +157,9 @@ class AppointmentAccessTests(BaseTestCase):
     def test_only_status_is_editable(self):
         later = (self.future + timedelta(days=3)).isoformat()
         self.as_user(self.prof).patch(
-            self.url, {'status': 'Confirmed', 'student': self.other_student.id, 'appointment_time': later}, format='json'
+            self.url,
+            {'status': 'Confirmed', 'student': self.other_student.id, 'appointment_time': later},
+            format='json',
         )
         self.appt.refresh_from_db()
         self.assertEqual(self.appt.student, self.student)

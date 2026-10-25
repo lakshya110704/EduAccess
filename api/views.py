@@ -64,7 +64,7 @@ class AppointmentViewSet(
         appt = serializer.save(student=user)
         Notification.objects.create(
             user=appt.professor,
-            message=f"New appointment request from {_name(user)} for {appt.appointment_time:%d %b %Y, %H:%M}.",
+            message=f'New appointment request from {_name(user)} for {appt.appointment_time:%d %b %Y, %H:%M}.',
         )
 
     @transaction.atomic
@@ -75,8 +75,7 @@ class AppointmentViewSet(
         Notification.objects.create(
             user=recipient,
             message=(
-                f"Your appointment with {_name(actor)} on {appt.appointment_time:%d %b %Y, %H:%M} "
-                f"is now {appt.status}."
+                f'Your appointment with {_name(actor)} on {appt.appointment_time:%d %b %Y, %H:%M} is now {appt.status}.'
             ),
         )
 
@@ -122,9 +121,13 @@ def login_view(request):
     """Authenticate and send the user to the dashboard for their stored role.
     Honors a `next` parameter when it is a safe local URL."""
     next_url = request.POST.get('next') or request.GET.get('next') or ''
-    safe_next = next_url if url_has_allowed_host_and_scheme(
-        next_url, allowed_hosts={request.get_host()}, require_https=request.is_secure()
-    ) else ''
+    safe_next = (
+        next_url
+        if url_has_allowed_host_and_scheme(
+            next_url, allowed_hosts={request.get_host()}, require_https=request.is_secure()
+        )
+        else ''
+    )
 
     if request.user.is_authenticated and request.method == 'GET':
         target = dashboard_for(request.user)

@@ -6,7 +6,6 @@ import django.db.models.deletion
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
         ('api', '0001_initial'),
     ]
@@ -17,9 +16,30 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('appointment_time', models.DateTimeField()),
-                ('status', models.CharField(choices=[('Pending', 'Pending'), ('Confirmed', 'Confirmed'), ('Cancelled', 'Cancelled')], default='Pending', max_length=20)),
-                ('professor', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='appointments_received', to=settings.AUTH_USER_MODEL)),
-                ('student', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='appointments_made', to=settings.AUTH_USER_MODEL)),
+                (
+                    'status',
+                    models.CharField(
+                        choices=[('Pending', 'Pending'), ('Confirmed', 'Confirmed'), ('Cancelled', 'Cancelled')],
+                        default='Pending',
+                        max_length=20,
+                    ),
+                ),
+                (
+                    'professor',
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name='appointments_received',
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
+                (
+                    'student',
+                    models.ForeignKey(
+                        on_delete=django.db.models.deletion.CASCADE,
+                        related_name='appointments_made',
+                        to=settings.AUTH_USER_MODEL,
+                    ),
+                ),
             ],
         ),
     ]
