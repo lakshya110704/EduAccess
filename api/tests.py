@@ -260,3 +260,106 @@ class AdminUserCreationTests(BaseTestCase):
         prof = CustomUser.objects.get(username='newprof')
         self.assertEqual((prof.role, prof.cabin_number, prof.availability_status), ('professor', 'B-210', 'Busy'))
         self.assertTrue(prof.check_password('a-long-unusual-pass-77'))
+
+
+class SignupTests(TestCase):
+    password = 'a-long-unusual-pass-77'
+
+    def data(self, **overrides):
+        data = {
+            'role': 'student',
+            'username': 'riya',
+            'first_name': 'Riya',
+            'middle_name': 'K',
+            'last_name': 'Sharma',
+            'email': 'Riya.Sharma@muj.manipal.edu',
+            'college_id': 'ab12345',
+            'password1': self.password,
+            'password2': self.password,
+        }
+        data.update(overrides)
+        return data
+
+    def test_student_signup_creates_inactive_account(self):
+        resp = self.client.post('/signup/', self.data())
+        self.assertRedirects(resp, '/signup/done/', fetch_redirect_response=False)
+        user = CustomUser.objects.get(username='riya')
+        self.assertFalse(user.is_active)
+        self.assertEqual(
+            (user.role, user.email, user.college_id, user.get_full_name()),
+            ('student', 'riya.sharma@muj.manipal.edu', 'AB12345', 'Riya K Sharma'),
+        )
+        self.assertTrue(user.check_password(self.password))
+
+    def test_professor_signup_uses_faculty_domain(self):
+        resp = self.client.post(
+            '/signup/', self.data(role='professor', username='neha', email='neha@jaipur.manipal.edu', college_id='E900')
+        )
+        self.assertEqual(resp.status_code, 302, resp.content[:300])
+        self.assertEqual(CustomUser.objects.get(username='neha').role, 'professor')
+
+    def test_email_domain_must_match_role(self):
+        for role, email in [
+            ('student', 'riya@jaipur.manipal.edu'),
+            ('professor', 'riya@muj.manipal.edu'),
+            ('student', 'riya@gmail.com'),
+            ('student', 'riya@evil-muj.manipal.edu'),
+        ]:
+            resp = self.client.post('/signup/', self.data(role=role, email=email))
+            self.assertEqual(resp.status_code, 200, (role, email))
+            self.assertContains(resp, 'must register with their @')
+        self.assertFalse(CustomUser.objects.exists())
+
+    def test_cannot_request_admin_role(self):
+        resp = self.client.post('/signup/', self.data(role='admin'))
+        self.assertEqual(resp.status_code, 200)
+        self.assertFalse(CustomUser.objects.exists())
+
+    def test_duplicates_rejected(self):
+        self.client.post('/signup/', self.data())
+        resp = self.client.post('/signup/', self.data(username='riya2', email='RIYA.sharma@muj.manipal.edu'))
+        self.assertContains(resp, 'An account with this email already exists.')
+        resp = self.client.post(
+            '/signup/', self.data(username='riya3', email='other@muj.manipal.edu', college_id='AB12345')
+        )
+        self.assertContains(resp, 'An account with this roll number already exists.')
+        self.assertEqual(CustomUser.objects.count(), 1)
+
+    def test_same_id_allowed_across_roles(self):
+        self.client.post('/signup/', self.data(college_id='X1'))
+        resp = self.client.post(
+            '/signup/', self.data(role='professor', username='p', email='p@jaipur.manipal.edu', college_id='X1')
+        )
+        self.assertEqual(resp.status_code, 302)
+
+    def test_password_mismatch_and_required_fields(self):
+        resp = self.client.post('/signup/', self.data(password2='different-pass-99'))
+        self.assertEqual(resp.status_code, 200)
+        resp = self.client.post('/signup/', self.data(first_name='', college_id=''))
+        self.assertEqual(resp.status_code, 200)
+        self.assertFalse(CustomUser.objects.exists())
+
+    def test_pending_account_sees_approval_message(self):
+        self.client.post('/signup/', self.data())
+        resp = self.client.post('/login/', {'username': 'riya', 'password': self.password})
+        self.assertContains(resp, 'awaiting approval', status_code=403)
+        resp = self.client.post('/login/', {'username': 'riya', 'password': 'wrong-password'})
+        self.assertContains(resp, 'Invalid username or password', status_code=401)
+
+    def test_admin_activation_then_login(self):
+        self.client.post('/signup/', self.data())
+        admin_user = CustomUser.objects.create_superuser(username='boss', password='pass-1234-word')
+        self.client.force_login(admin_user)
+        user = CustomUser.objects.get(username='riya')
+        self.client.post(
+            '/admin/api/customuser/', {'action': 'activate_accounts', '_selected_action': [user.pk]}, follow=True
+        )
+        user.refresh_from_db()
+        self.assertTrue(user.is_active)
+        self.client.logout()
+        resp = self.client.post('/login/', {'username': 'riya', 'password': self.password})
+        self.assertRedirects(resp, '/student/', fetch_redirect_response=False)
+
+    def test_signup_page_renders_and_login_links_to_it(self):
+        self.assertContains(self.client.get('/signup/'), 'name="college_id"')
+        self.assertContains(self.client.get('/login/'), 'href="/signup/"')

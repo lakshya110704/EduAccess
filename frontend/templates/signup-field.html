@@ -1,0 +1,6 @@
+<input type="{{ type|default:'text' }}" name="{{ field.html_name }}" id="{{ field.id_for_label }}"
+       placeholder="{{ placeholder }}" autocomplete="{{ autocomplete }}" aria-label="{{ placeholder }}"
+       {% if type != "password" and field.value %}value="{{ field.value }}"{% endif %}
+       {% if field.field.required %}required{% endif %}
+       {% if field.errors %}aria-invalid="true" class="input-error"{% endif %}>
+{% for error in field.errors %}<div class="field-error">{{ error }}</div>{% endfor %}

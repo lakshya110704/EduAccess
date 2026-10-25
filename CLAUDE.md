@@ -11,9 +11,23 @@ availability, cabin locator and appointment booking for students and professors.
 - `api/permissions.py` — `role_required` page decorator, `dashboard_for(user)`, `IsAppointmentParticipant`
 - `api/views.py` — API viewsets + page views. Login redirects by the user's **stored** role (there is no role picker)
 - `api/serializers.py` — validation lives here (future-only times, no double-booking, professor must be a professor, status transitions)
+- `api/forms.py` — `SignupForm`: self-registration rules (role whitelist, email domain per role, unique email
+  and college ID, password validators); saves accounts **inactive**
 - `api/management/commands/seed_demo.py` — demo users for local runs (DEBUG only)
 - `frontend/templates/` — `login.html`, `student-dashboard.html`, `professor-dashboard.html` (`<body data-page=...>` selects the JS behaviour)
 - `frontend/static/script.js` — all frontend logic: `api()` fetch wrapper (CSRF header, relative `/api`), renders with `textContent` only, polls every 10s while the tab is visible
+
+## Accounts and sign-up
+
+- `CustomUser` adds `role`, `availability_status`, `cabin_number`, `middle_name`, `college_id` (roll number
+  for students, employee ID for professors). `get_full_name()` = first + middle + last.
+- DB constraints: email unique case-insensitively (when set); `college_id` unique per role (when set).
+- `/signup/` (link on the login page): students and professors register themselves. Email must be on the
+  role's domain — `SIGNUP_STUDENT_EMAIL_DOMAIN` (default `muj.manipal.edu`), `SIGNUP_PROFESSOR_EMAIL_DOMAIN`
+  (default `jaipur.manipal.edu`) in `.env`. New accounts are inactive; logging in shows "awaiting approval".
+- Admins approve in `/admin/` → Users (filter Active = No, check role and college ID) → action
+  "Activate selected accounts". The admin's Add user page also sets role/IDs/cabin in one step.
+- Not yet: email confirmation (no mail setup) and sign-up rate limiting — needed before going public.
 
 ## API
 

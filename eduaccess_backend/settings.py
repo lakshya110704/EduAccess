@@ -112,6 +112,12 @@ AUTH_PASSWORD_VALIDATORS = [
 AUTH_USER_MODEL = 'api.CustomUser'
 LOGIN_URL = '/login/'
 
+# Self sign-up: each role must register with its college email domain.
+SIGNUP_EMAIL_DOMAINS = {
+    'student': config('SIGNUP_STUDENT_EMAIL_DOMAIN', default='muj.manipal.edu'),
+    'professor': config('SIGNUP_PROFESSOR_EMAIL_DOMAIN', default='jaipur.manipal.edu'),
+}
+
 
 # Internationalization
 

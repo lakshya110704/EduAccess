@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.db import transaction
@@ -9,6 +10,7 @@ from rest_framework import filters, generics, mixins, viewsets
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.permissions import IsAuthenticated
 
+from .forms import SignupForm
 from .models import Appointment, CustomUser, Notification
 from .permissions import IsAppointmentParticipant, dashboard_for, role_required
 from .serializers import (
@@ -135,8 +137,15 @@ def login_view(request):
             return redirect(target)
 
     if request.method == 'POST':
-        user = authenticate(request, username=request.POST.get('username'), password=request.POST.get('password'))
+        username, password = request.POST.get('username'), request.POST.get('password')
+        user = authenticate(request, username=username, password=password)
         if user is None:
+            # authenticate() rejects inactive accounts outright; tell a signed-up user (who knows their
+            # password) that they are waiting for approval rather than that the password is wrong.
+            pending = CustomUser.objects.filter(username=username, is_active=False).first()
+            if pending and password and pending.check_password(password):
+                messages.error(request, 'Your account is awaiting approval by an admin.')
+                return render(request, 'login.html', {'next': safe_next}, status=403)
             messages.error(request, 'Invalid username or password.')
             return render(request, 'login.html', {'next': safe_next}, status=401)
 
@@ -149,6 +158,22 @@ def login_view(request):
         return redirect(safe_next or target)
 
     return render(request, 'login.html', {'next': safe_next})
+
+
+def signup_view(request):
+    """Self-registration for students and professors. New accounts are inactive until an admin
+    activates them in the admin site."""
+    if request.user.is_authenticated:
+        return redirect(dashboard_for(request.user) or 'login')
+    form = SignupForm(request.POST or None)
+    if request.method == 'POST' and form.is_valid():
+        form.save()
+        return redirect('signup_done')
+    return render(request, 'signup.html', {'form': form, 'email_domains': settings.SIGNUP_EMAIL_DOMAINS})
+
+
+def signup_done(request):
+    return render(request, 'signup-done.html')
 
 
 @require_POST

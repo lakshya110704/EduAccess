@@ -1,4 +1,4 @@
-from django.contrib import admin
+from django.contrib import admin, messages
 from django.contrib.auth.admin import UserAdmin
 
 from .models import Appointment, CustomUser, Notification
@@ -6,8 +6,10 @@ from .models import Appointment, CustomUser, Notification
 
 class CustomUserAdmin(UserAdmin):
     model = CustomUser
-    list_display = ['username', 'first_name', 'last_name', 'role', 'availability_status', 'cabin_number', 'is_active']
+    list_display = ['username', 'first_name', 'last_name', 'role', 'college_id', 'email', 'cabin_number', 'is_active']
     list_filter = ('role', *UserAdmin.list_filter)
+    search_fields = (*UserAdmin.search_fields, 'college_id')
+    actions = ['activate_accounts']
 
     # "Add user" page: account and EduAccess profile on one page, so a student or professor
     # is fully set up with a single save.
@@ -16,7 +18,16 @@ class CustomUserAdmin(UserAdmin):
             'EduAccess profile',
             {
                 'classes': ('wide',),
-                'fields': ('first_name', 'last_name', 'email', 'role', 'cabin_number', 'availability_status'),
+                'fields': (
+                    'first_name',
+                    'middle_name',
+                    'last_name',
+                    'email',
+                    'role',
+                    'college_id',
+                    'cabin_number',
+                    'availability_status',
+                ),
             },
         ),
     )
@@ -26,10 +37,15 @@ class CustomUserAdmin(UserAdmin):
         (
             'Additional Info',
             {
-                'fields': ('role', 'availability_status', 'cabin_number'),
+                'fields': ('role', 'middle_name', 'college_id', 'availability_status', 'cabin_number'),
             },
         ),
     )
+
+    @admin.action(description='Activate selected accounts')
+    def activate_accounts(self, request, queryset):
+        updated = queryset.filter(is_active=False).update(is_active=True)
+        self.message_user(request, f'Activated {updated} account(s).', messages.SUCCESS)
 
 
 admin.site.register(CustomUser, CustomUserAdmin)

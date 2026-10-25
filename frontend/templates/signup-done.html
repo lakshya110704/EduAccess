@@ -1,0 +1,19 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>EduAccess - Request received</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <link rel="stylesheet" href="{% static 'styles.css' %}"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+</head>
+<body class="login-body">
+  <div class="background-blur"></div>
+  <div class="login-container">
+    <h1><i class="fas fa-circle-check"></i> Request received</h1>
+    <p>Your account has been created and is waiting for an admin to activate it. You can log in once it's approved.</p>
+    <p class="signup-switch"><a href="{% url 'login' %}">Back to login</a></p>
+  </div>
+</body>
+</html>
