@@ -1,0 +1,12 @@
+{
+  "name": "eduaccess-frontend-tools",
+  "private": true,
+  "description": "Development tooling for EduAccess's frontend JavaScript (not a runtime dependency).",
+  "scripts": {
+    "lint": "biome ci frontend/static",
+    "format": "biome check --write frontend/static"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.6.3"
+  }
+}

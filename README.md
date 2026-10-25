@@ -90,6 +90,15 @@ uvx --python 3.12 --from pip-tools pip-compile --generate-hashes --strip-extras 
 
 Dependabot opens weekly pull requests for available updates; CI tests each before it is merged.
 
+### Linting and formatting
+
+Python is checked with Ruff and the frontend JavaScript with Biome; CI fails on any finding. To check locally:
+
+```bash
+pip install -r requirements-dev.txt && npm ci
+ruff check . && ruff format --check . && npx biome ci frontend/static
+```
+
 ## 🚀 Production notes
 
 - Set `DJANGO_SECRET_KEY`, `DJANGO_ALLOWED_HOSTS`, `DJANGO_CSRF_TRUSTED_ORIGINS` and the `DB_*` variables; leave `DJANGO_DEBUG` unset.

@@ -15,3 +15,4 @@ graphify-out/.graphify_root
 graphify-out/.graphify_labels.pending.json
 graphify-out/20*/
 .vibe-wise/
+node_modules/

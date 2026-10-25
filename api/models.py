@@ -18,7 +18,7 @@ AVAILABILITY_CHOICES = (
 class CustomUser(AbstractUser):
     role = models.CharField(max_length=20, choices=USER_ROLES)
     availability_status = models.CharField(max_length=20, choices=AVAILABILITY_CHOICES, default='Unavailable')
-    cabin_number = models.CharField(max_length=10, blank=True, null=True)
+    cabin_number = models.CharField(max_length=10, blank=True, default='')
 
     # Fix reverse accessor conflict errors in admin logs
     groups = models.ManyToManyField(

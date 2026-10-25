@@ -47,14 +47,28 @@ Tests: `DB_ENGINE=sqlite DJANGO_DEBUG=True python manage.py test api`
 - To add or bump a package: edit `requirements.in`, then
   `uvx --python 3.12 --from pip-tools pip-compile --generate-hashes --strip-extras requirements.in`
   (add `--upgrade-package <name>` to bump one package), run the tests, commit both files.
-- Updates are deliberate: `.github/dependabot.yml` opens weekly PRs for pip packages (minor/patch grouped)
-  and GitHub Actions; CI tests each, a human merges.
+- Updates are deliberate: `.github/dependabot.yml` opens weekly PRs for pip packages (minor/patch grouped),
+  npm (Biome) and GitHub Actions; CI tests each, a human merges.
+
+## Linting and formatting
+
+- Python: Ruff (`ruff.toml`) — lint rules E, F, W, I, B, DJ, UP; line length 120; single quotes;
+  migrations excluded from linting. Pinned in `requirements-dev.in/.txt` (pip-tools lock, dev only).
+- JavaScript: Biome (`biome.json`) on `frontend/static/` — recommended rules, 2-space indent, line
+  width 120. Pinned exactly in `package.json` + `package-lock.json` (`node_modules/` is ignored).
+- Check locally before pushing:
+  `pip install -r requirements-dev.txt && npm ci`, then
+  `ruff check . && ruff format --check . && npx biome ci frontend/static`.
+  Auto-fix: `ruff check --fix . && ruff format . && npm run format`.
+- `.git-blame-ignore-revs` lists the one-off mass-reformat commit; `git blame` skips it
+  (GitHub does automatically; locally run `git config blame.ignoreRevsFile .git-blame-ignore-revs`).
 
 ## CI
 
-`.github/workflows/ci.yml` (GitHub Actions) runs on every push: Python 3.12, a PostgreSQL 16
-service container (so tests run on the same database engine as production), `makemigrations
---check` to catch missing migrations, then `manage.py test api`.
+`.github/workflows/ci.yml` (GitHub Actions) runs two parallel jobs on every push:
+- `lint` — `ruff check`, `ruff format --check`, `biome ci frontend/static`; any finding fails CI.
+- `test` — Python 3.12, a PostgreSQL 16 service container (so tests run on the same database engine as
+  production), `makemigrations --check` to catch missing migrations, then `manage.py test api`.
 
 ## Commits
 

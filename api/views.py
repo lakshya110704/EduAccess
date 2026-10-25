@@ -74,7 +74,10 @@ class AppointmentViewSet(
         recipient = appt.professor if actor == appt.student else appt.student
         Notification.objects.create(
             user=recipient,
-            message=f"Your appointment with {_name(actor)} on {appt.appointment_time:%d %b %Y, %H:%M} is now {appt.status}.",
+            message=(
+                f"Your appointment with {_name(actor)} on {appt.appointment_time:%d %b %Y, %H:%M} "
+                f"is now {appt.status}."
+            ),
         )
 
     def update(self, request, *args, **kwargs):

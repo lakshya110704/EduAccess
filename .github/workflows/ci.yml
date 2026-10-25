@@ -4,6 +4,36 @@ on:
   push:
 
 jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: requirements-dev.txt
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: "22"
+          cache: npm
+
+      - name: Install lint tools
+        run: |
+          pip install -r requirements-dev.txt
+          npm ci
+
+      - name: Python lint (ruff check)
+        run: ruff check .
+
+      - name: Python format (ruff format --check)
+        run: ruff format --check .
+
+      - name: JavaScript lint + format (biome ci)
+        run: npx biome ci frontend/static
+
   test:
     runs-on: ubuntu-latest
 

@@ -5,7 +5,7 @@ const REFRESH_MS = 10000;
 const PAGE = document.body.dataset.page;
 
 function getCookie(name) {
-  const match = document.cookie.match(new RegExp("(?:^|; )" + name + "=([^;]*)"));
+  const match = document.cookie.match(new RegExp(`(?:^|; )${name}=([^;]*)`));
   return match ? decodeURIComponent(match[1]) : null;
 }
 
@@ -48,7 +48,7 @@ function el(tag, { text, className, attrs } = {}, children = []) {
   if (text !== undefined) node.textContent = text;
   if (className) node.className = className;
   for (const [k, v] of Object.entries(attrs || {})) node.setAttribute(k, v);
-  children.forEach((c) => node.appendChild(c));
+  for (const child of children) node.appendChild(child);
   return node;
 }
 
@@ -247,9 +247,9 @@ window.addEventListener("DOMContentLoaded", () => {
     document.getElementById("cabin-form").addEventListener("submit", findCabin);
   }
   if (PAGE === "professor") {
-    document
-      .querySelectorAll('input[name="availability-status"]')
-      .forEach((radio) => radio.addEventListener("change", updateAvailability));
+    for (const radio of document.querySelectorAll('input[name="availability-status"]')) {
+      radio.addEventListener("change", updateAvailability);
+    }
   }
   refresh();
   setInterval(refresh, REFRESH_MS);

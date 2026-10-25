@@ -1,9 +1,9 @@
 # Graph Report - EduAccess  (2026-10-24)
 
 ## Corpus Check
-- 25 files · ~291,646 words
+- 25 files · ~291,711 words
 - Verdict: corpus is large enough that graph structure adds value.
-- Unclassified: 5 file(s) not represented in the graph (top: (none) 2, .example 1, .css 1)
+- Unclassified: 6 file(s) not represented in the graph (top: (none) 3, .example 1, .css 1)
 
 ## Summary
 - 256 nodes · 410 edges · 19 communities (8 shown, 11 thin omitted)
@@ -11,7 +11,7 @@
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `b1c7a9dd`
+- Built from commit: `5f70db2e`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -33,10 +33,10 @@
 
 ## God Nodes (most connected - your core abstractions)
 1. `CustomUser` - 16 edges
-2. `Appointment` - 13 edges
-3. `Notification` - 13 edges
-4. `AppointmentAccessTests` - 13 edges
-5. `AppointmentViewSet` - 13 edges
+2. `AppointmentAccessTests` - 13 edges
+3. `Appointment` - 13 edges
+4. `AppointmentViewSet` - 13 edges
+5. `Notification` - 13 edges
 6. `BaseTestCase` - 12 edges
 7. `BookingTests` - 12 edges
 8. `PageTests` - 12 edges
@@ -44,16 +44,16 @@
 10. `api()` - 11 edges
 
 ## Surprising Connections (you probably didn't know these)
-- `Layout` --references--> `CustomUser`  [INFERRED]
-  CLAUDE.md → api/models.py
-- `Update Availability radio group (Free/Busy/Unavailable)` --shares_data_with--> `CustomUser`  [INFERRED]
-  frontend/static/assets/professor.png → api/models.py
 - `Layout` --references--> `Appointment`  [INFERRED]
   CLAUDE.md → api/models.py
-- `Manage Appointments table (Student, Time, Action columns; empty)` --shares_data_with--> `Appointment`  [INFERRED]
-  frontend/static/assets/professor.png → api/models.py
+- `Layout` --references--> `CustomUser`  [INFERRED]
+  CLAUDE.md → api/models.py
 - `Layout` --references--> `Notification`  [INFERRED]
   CLAUDE.md → api/models.py
+- `Layout` --references--> `api()`  [INFERRED]
+  CLAUDE.md → frontend/static/script.js
+- `Manage Appointments table (Student, Time, Action columns; empty)` --shares_data_with--> `Appointment`  [INFERRED]
+  frontend/static/assets/professor.png → api/models.py
 
 ## Import Cycles
 - None detected.
