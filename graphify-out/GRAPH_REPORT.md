@@ -1,17 +1,17 @@
 # Graph Report - EduAccess  (2026-10-25)
 
 ## Corpus Check
-- 29 files · ~292,489 words
+- 30 files · ~292,946 words
 - Verdict: corpus is large enough that graph structure adds value.
 - Unclassified: 12 file(s) not represented in the graph (top: (none) 6, .example 2, .in 2)
 
 ## Summary
-- 289 nodes · 434 edges · 22 communities (11 shown, 11 thin omitted)
-- Extraction: 90% EXTRACTED · 10% INFERRED · 0% AMBIGUOUS · INFERRED: 44 edges (avg confidence: 0.89)
+- 292 nodes · 438 edges · 22 communities (11 shown, 11 thin omitted)
+- Extraction: 90% EXTRACTED · 10% INFERRED · 0% AMBIGUOUS · INFERRED: 45 edges (avg confidence: 0.89)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `e86c11ca`
+- Built from commit: `c318ad8a`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -29,7 +29,7 @@
 - tests.py
 - Background Image
 - BookingTests
-- EduAccess
+- deploy.sh
 - package.json
 - CustomUser
 - entrypoint.sh
@@ -79,6 +79,10 @@ Nodes (15): files, includes, formatter, enabled, indentStyle, indentWidth, lineW
 Cohesion: 0.11
 Nodes (22): Login Page, Login Form (username, password, role), Professor Dashboard Page, Manage Appointments Table, Update Availability Section, Student Dashboard Page, Book Appointment Section, Professor Availability Table (+14 more)
 
+### Community 3 - "Project Config & Entrypoints"
+Cohesion: 0.09
+Nodes (10): API, CI, Commits, Dependencies, Deployment (homelab), EduAccess, graphify, Linting and formatting (+2 more)
+
 ### Community 4 - "Appointment"
 Cohesion: 0.14
 Nodes (4): AppointmentSerializer, Meta, AppointmentViewSet, _name()
@@ -99,10 +103,6 @@ Nodes (4): Migration, Migration, Migration, Migration
 Cohesion: 0.10
 Nodes (6): AppointmentAccessTests, BaseTestCase, make_user(), MeTests, NotificationTests, ProfessorDirectoryTests
 
-### Community 16 - "EduAccess"
-Cohesion: 0.20
-Nodes (9): API, CI, Commits, Dependencies, Deployment (homelab), EduAccess, graphify, Linting and formatting (+1 more)
-
 ### Community 17 - "package.json"
 Cohesion: 0.20
 Nodes (9): description, devDependencies, @biomejs/biome, name, private, scripts, format, lint (+1 more)
@@ -113,14 +113,14 @@ Nodes (16): CustomUserAdmin, Command, Appointment, CustomUser, Notification, App
 
 ## Knowledge Gaps
 - **11 isolated node(s):** `@biomejs/biome`, `Neoclassical university building with golden dome, palm-lined lawn, blue sky`, `Campus Background Photo (domed administrative building)`, `Django`, `gunicorn + whitenoise (deployment)` (+6 more)
-  These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 127 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
+  These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 126 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
 - **11 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `Layout` connect `views.py` to `EduAccess`, `CustomUser`, `script.js`?**
-  _High betweenness centrality (0.267) - this node is a cross-community bridge._
+- **Why does `Layout` connect `views.py` to `Project Config & Entrypoints`, `CustomUser`, `script.js`?**
+  _High betweenness centrality (0.325) - this node is a cross-community bridge._
 - **Are the 8 inferred relationships involving `CustomUser` (e.g. with `CustomUserAdmin` and `Command`) actually correct?**
   _`CustomUser` has 8 INFERRED edges - model-reasoned connections that need verification._
 - **What connects `@biomejs/biome`, `Neoclassical university building with golden dome, palm-lined lawn, blue sky`, `Campus Background Photo (domed administrative building)` to the rest of the system?**
@@ -128,7 +128,7 @@ _Questions this graph is uniquely positioned to answer:_
 - **Should `views.py` be split into smaller, more focused modules?**
   _Cohesion score 0.06025369978858351 - nodes in this community are weakly interconnected._
 - **Why does `api()` connect `script.js` to `views.py`?**
-  _High betweenness centrality (0.217) - this node is a cross-community bridge._
+  _High betweenness centrality (0.226) - this node is a cross-community bridge._
 - **Are the 7 inferred relationships involving `Appointment` (e.g. with `AppointmentSerializer` and `AppointmentStatusSerializer`) actually correct?**
   _`Appointment` has 7 INFERRED edges - model-reasoned connections that need verification._
 - **Should `biome.json` be split into smaller, more focused modules?**

@@ -228,3 +228,35 @@ class PageTests(BaseTestCase):
 
     def test_healthz(self):
         self.assertEqual(self.client.get('/healthz/').json(), {'status': 'ok'})
+
+
+class AdminUserCreationTests(BaseTestCase):
+    def setUp(self):
+        super().setUp()
+        self.admin = CustomUser.objects.create_superuser(username='boss', password='pass-1234-word')
+        self.client.force_login(self.admin)
+
+    def test_add_page_shows_profile_fields(self):
+        resp = self.client.get('/admin/api/customuser/add/')
+        for field in ('role', 'cabin_number', 'availability_status', 'first_name'):
+            self.assertContains(resp, f'name="{field}"')
+
+    def test_professor_created_in_one_step(self):
+        resp = self.client.post(
+            '/admin/api/customuser/add/',
+            {
+                'username': 'newprof',
+                'usable_password': 'true',
+                'password1': 'a-long-unusual-pass-77',
+                'password2': 'a-long-unusual-pass-77',
+                'first_name': 'Neha',
+                'last_name': 'Iyer',
+                'role': 'professor',
+                'cabin_number': 'B-210',
+                'availability_status': 'Busy',
+            },
+        )
+        self.assertEqual(resp.status_code, 302, resp.content[:500])
+        prof = CustomUser.objects.get(username='newprof')
+        self.assertEqual((prof.role, prof.cabin_number, prof.availability_status), ('professor', 'B-210', 'Busy'))
+        self.assertTrue(prof.check_password('a-long-unusual-pass-77'))
