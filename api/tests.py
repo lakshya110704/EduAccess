@@ -183,25 +183,47 @@ class NotificationTests(BaseTestCase):
 
 
 class PageTests(BaseTestCase):
-    def login(self, username, **extra):
-        return self.client.post('/login/', {'username': username, 'password': 'pass-1234-word', **extra})
+    def login(self, username, role='student', **extra):
+        return self.client.post('/login/', {'role': role, 'username': username, 'password': 'pass-1234-word', **extra})
 
-    def test_login_redirects_by_stored_role_not_form_role(self):
-        resp = self.login('stu', role='professor')
-        self.assertRedirects(resp, '/student/', fetch_redirect_response=False)
+    def test_student_login_with_matching_role(self):
+        self.assertRedirects(self.login('stu'), '/student/', fetch_redirect_response=False)
 
     def test_professor_login(self):
-        self.assertRedirects(self.login('prof'), '/professor/', fetch_redirect_response=False)
+        self.assertRedirects(self.login('prof', role='professor'), '/professor/', fetch_redirect_response=False)
 
-    def test_bad_password(self):
-        resp = self.client.post('/login/', {'username': 'stu', 'password': 'nope'})
+    def test_wrong_role_is_refused_with_hint(self):
+        resp = self.login('stu', role='professor')
+        self.assertContains(resp, 'This is a student account. Is the role selected right?', status_code=403)
+        self.assertNotIn('_auth_user_id', self.client.session)
+        resp = self.login('prof', role='student')
+        self.assertContains(resp, 'This is a professor account.', status_code=403)
+
+    def test_role_is_required(self):
+        resp = self.client.post('/login/', {'username': 'stu', 'password': 'pass-1234-word'})
+        self.assertContains(resp, 'Select your role.', status_code=400)
+        self.assertNotIn('_auth_user_id', self.client.session)
+
+    def test_bad_password_message_is_neutral(self):
+        # Same message whatever role is selected, so a guesser learns nothing about the account.
+        for role in ('student', 'professor'):
+            resp = self.client.post('/login/', {'role': role, 'username': 'stu', 'password': 'nope'})
+            self.assertContains(
+                resp,
+                'Invalid username or password for the selected role. Check that the right role is selected.',
+                status_code=401,
+            )
+        resp = self.client.post('/login/', {'role': 'student', 'username': 'no-such-user', 'password': 'nope'})
         self.assertEqual(resp.status_code, 401)
-        self.assertContains(resp, 'Invalid username or password', status_code=401)
+
+    def test_selected_role_kept_after_failure(self):
+        resp = self.client.post('/login/', {'role': 'professor', 'username': 'x', 'password': 'y'})
+        self.assertContains(resp, '<option value="professor" selected>', status_code=401)
 
     def test_user_without_role_is_not_logged_in(self):
         make_user('nobody', '')
         resp = self.login('nobody')
-        self.assertEqual(resp.status_code, 403)
+        self.assertContains(resp, 'Admins sign in through the admin site', status_code=403)
         self.assertNotIn('_auth_user_id', self.client.session)
 
     def test_unsafe_next_is_ignored(self):
@@ -341,9 +363,11 @@ class SignupTests(TestCase):
 
     def test_pending_account_sees_approval_message(self):
         self.client.post('/signup/', self.data())
-        resp = self.client.post('/login/', {'username': 'riya', 'password': self.password})
+        resp = self.client.post('/login/', {'role': 'student', 'username': 'riya', 'password': self.password})
         self.assertContains(resp, 'awaiting approval', status_code=403)
-        resp = self.client.post('/login/', {'username': 'riya', 'password': 'wrong-password'})
+        resp = self.client.post('/login/', {'role': 'professor', 'username': 'riya', 'password': self.password})
+        self.assertContains(resp, 'This is a student account.', status_code=403)
+        resp = self.client.post('/login/', {'role': 'student', 'username': 'riya', 'password': 'wrong-password'})
         self.assertContains(resp, 'Invalid username or password', status_code=401)
 
     def test_admin_activation_then_login(self):
@@ -357,9 +381,11 @@ class SignupTests(TestCase):
         user.refresh_from_db()
         self.assertTrue(user.is_active)
         self.client.logout()
-        resp = self.client.post('/login/', {'username': 'riya', 'password': self.password})
+        resp = self.client.post('/login/', {'role': 'student', 'username': 'riya', 'password': self.password})
         self.assertRedirects(resp, '/student/', fetch_redirect_response=False)
 
     def test_signup_page_renders_and_login_links_to_it(self):
         self.assertContains(self.client.get('/signup/'), 'name="college_id"')
-        self.assertContains(self.client.get('/login/'), 'href="/signup/"')
+        login_page = self.client.get('/login/')
+        self.assertContains(login_page, 'href="/signup/"')
+        self.assertContains(login_page, 'name="role"')

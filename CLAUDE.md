@@ -9,7 +9,10 @@ availability, cabin locator and appointment booking for students and professors.
 - `eduaccess_backend/urls.py` — pages (`/`, `/login/`, `/logout/` POST-only, `/student/`, `/professor/`), `/admin/`, `/api/`, `/healthz/`
 - `api/models.py` — `CustomUser` (role, availability_status, cabin_number), `Appointment`, `Notification`
 - `api/permissions.py` — `role_required` page decorator, `dashboard_for(user)`, `IsAppointmentParticipant`
-- `api/views.py` — API viewsets + page views. Login redirects by the user's **stored** role (there is no role picker)
+- `api/views.py` — API viewsets + page views. Login has a role dropdown (Student/Professor): it succeeds only if
+  the credentials belong to an account **of that role** (the stored role decides, the dropdown only has to
+  match). Correct credentials + wrong role → "This is a {role} account. Is the role selected right?"; wrong
+  credentials → one neutral message for any role (no account enumeration). Admins use `/admin/` (linked).
 - `api/serializers.py` — validation lives here (future-only times, no double-booking, professor must be a professor, status transitions)
 - `api/forms.py` — `SignupForm`: self-registration rules (role whitelist, email domain per role, unique email
   and college ID, password validators); saves accounts **inactive**

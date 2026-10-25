@@ -7,7 +7,7 @@ EduAccess is a full-stack web platform designed to streamline faculty-student in
 ## 🚀 Features
 
 - 📝 **Self sign-up**: Students (`@muj.manipal.edu`) and professors (`@jaipur.manipal.edu`) request an account with their college email and roll number / employee ID; an admin activates it.
-- 🔐 **Role-Based Login**: Users land on the dashboard for their account role; dashboards and API are permission-checked server-side.
+- 🔐 **Role-Based Login**: Pick Student or Professor and log in; it only succeeds if the account has that role. Dashboards and API are permission-checked server-side.
 - 👨‍🏫 **Professor Dashboard**:  
   - Update availability status (Free, Busy, Unavailable)  
   - View and manage appointment requests

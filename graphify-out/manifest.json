@@ -6,9 +6,9 @@
     "semantic_hash": "d41d8cd98f00b204e9800998ecf8427e"
   },
   "api/admin.py": {
-    "mtime": 1792935797.0136304,
-    "seen": 1792935843.596823,
-    "ast_hash": "5274fa0d8c89f973b5c80721c9386bc8",
+    "mtime": 1792936422.9312673,
+    "seen": 1792936589.195644,
+    "ast_hash": "a7f447db2611b54222facb98fb001db2",
     "semantic_hash": ""
   },
   "api/apps.py": {
@@ -42,9 +42,9 @@
     "semantic_hash": "d41d8cd98f00b204e9800998ecf8427e"
   },
   "api/models.py": {
-    "mtime": 1792922439.5876746,
-    "seen": 1792922450.867423,
-    "ast_hash": "e46678bb4c13990671ea2f8de72c56d5",
+    "mtime": 1792936422.9313278,
+    "seen": 1792936589.1956558,
+    "ast_hash": "bd02aa0babc465fd7f06a8685256c71f",
     "semantic_hash": ""
   },
   "api/serializers.py": {
@@ -54,9 +54,9 @@
     "semantic_hash": ""
   },
   "api/tests.py": {
-    "mtime": 1792935811.3913765,
-    "seen": 1792935843.5968351,
-    "ast_hash": "224c38d3aac5456090700d187ae32a36",
+    "mtime": 1792936422.9312735,
+    "seen": 1792936589.195659,
+    "ast_hash": "4e3fc1f49935f54d908e79b2816faa4b",
     "semantic_hash": ""
   },
   "api/urls.py": {
@@ -66,9 +66,9 @@
     "semantic_hash": ""
   },
   "api/views.py": {
-    "mtime": 1792922439.5884643,
-    "seen": 1792922450.867427,
-    "ast_hash": "dca959a608243a6a686359dd212cc4ae",
+    "mtime": 1792936360.6261299,
+    "seen": 1792936589.195661,
+    "ast_hash": "7a78ec917f33f7a6d9e5275221e3c7d1",
     "semantic_hash": ""
   },
   "eduaccess_backend/__init__.py": {
@@ -84,15 +84,15 @@
     "semantic_hash": "db74d907f52bc5de1c1e9d20a56ac098"
   },
   "eduaccess_backend/settings.py": {
-    "mtime": 1792922439.5881715,
-    "seen": 1792922450.86743,
-    "ast_hash": "c7339f79109a4ec6bcc2479398a2b2ec",
+    "mtime": 1792936345.0869834,
+    "seen": 1792936589.1956658,
+    "ast_hash": "df64ee9131f0120433da1d302d112a6b",
     "semantic_hash": ""
   },
   "eduaccess_backend/urls.py": {
-    "mtime": 1792854224.23672,
-    "seen": 1792854531.177971,
-    "ast_hash": "84a756c0f3e3d58723284b953b3c4adc",
+    "mtime": 1792936360.626829,
+    "seen": 1792936589.1956658,
+    "ast_hash": "b5933c4a101222d36cdcffa5bd4974d9",
     "semantic_hash": ""
   },
   "eduaccess_backend/wsgi.py": {
@@ -114,15 +114,15 @@
     "semantic_hash": ""
   },
   "README.md": {
-    "mtime": 1792923681.2372985,
-    "seen": 1792923690.7405078,
-    "ast_hash": "9391a0746170e609c060216a5010ab77",
+    "mtime": 1792936587.9655046,
+    "seen": 1792936589.1956742,
+    "ast_hash": "34beb009a3375372cb40a8818130575c",
     "semantic_hash": ""
   },
   "frontend/templates/login.html": {
-    "mtime": 1792854275.9241266,
-    "seen": 1792854531.1779761,
-    "ast_hash": "b53acf30aa64d6f1f43e3a2f5a64ec04",
+    "mtime": 1792936385.1399665,
+    "seen": 1792936589.195675,
+    "ast_hash": "958c328db7614dc9896d96d8d23ed911",
     "semantic_hash": ""
   },
   "frontend/templates/professor-dashboard.html": {
@@ -198,9 +198,9 @@
     "semantic_hash": ""
   },
   "CLAUDE.md": {
-    "mtime": 1792934970.3392048,
-    "seen": 1792934971.4355981,
-    "ast_hash": "cd1b0164fc539c8233715b66e99e7572",
+    "mtime": 1792936587.9650626,
+    "seen": 1792936589.195673,
+    "ast_hash": "214c24c294cc5216c9cc614c35e24999",
     "semantic_hash": ""
   },
   ".github/workflows/ci.yml": {
@@ -255,6 +255,42 @@
     "mtime": 1792934419.1688597,
     "seen": 1792934971.4355872,
     "ast_hash": "2cba202040b5c1e2038808edd8a41c78",
+    "semantic_hash": ""
+  },
+  "api/forms.py": {
+    "mtime": 1792936347.0282118,
+    "seen": 1792936589.195647,
+    "ast_hash": "c8de247f63decbec0439750cfc2bdaf5",
+    "semantic_hash": ""
+  },
+  "api/migrations/0005_signup_fields.py": {
+    "mtime": 1792936422.931267,
+    "seen": 1792936589.1956549,
+    "ast_hash": "83e74f1a632fa1a30dbaf8847258bfba",
+    "semantic_hash": ""
+  },
+  "frontend/static/signup.js": {
+    "mtime": 1792936385.0469272,
+    "seen": 1792936589.195669,
+    "ast_hash": "93d2cc2b033660f8aee649c0be01fb42",
+    "semantic_hash": ""
+  },
+  "frontend/templates/signup-done.html": {
+    "mtime": 1792936385.0064983,
+    "seen": 1792936589.1956758,
+    "ast_hash": "345a77d99b9ae947290bdec2e44b8d19",
+    "semantic_hash": ""
+  },
+  "frontend/templates/signup-field.html": {
+    "mtime": 1792936384.973076,
+    "seen": 1792936589.195677,
+    "ast_hash": "c63f4880317357c3c600349b15e5bd3b",
+    "semantic_hash": ""
+  },
+  "frontend/templates/signup.html": {
+    "mtime": 1792936384.9230049,
+    "seen": 1792936589.195678,
+    "ast_hash": "2253d65ab34f83b6907b69ea92a81f13",
     "semantic_hash": ""
   }
 }

@@ -119,8 +119,17 @@ class MeView(generics.RetrieveUpdateAPIView):
 # Page views
 
 
+LOGIN_ROLES = {'student': 'Student', 'professor': 'Professor'}
+
+
+def _wrong_role_message(user):
+    if user.role in LOGIN_ROLES:
+        return f'This is a {LOGIN_ROLES[user.role].lower()} account. Is the role selected right?'
+    return 'This account is not a student or professor account. Admins sign in through the admin site.'
+
+
 def login_view(request):
-    """Authenticate and send the user to the dashboard for their stored role.
+    """Log in as the selected role: the username and password must belong to an account of that role.
     Honors a `next` parameter when it is a safe local URL."""
     next_url = request.POST.get('next') or request.GET.get('next') or ''
     safe_next = (
@@ -137,25 +146,35 @@ def login_view(request):
             return redirect(target)
 
     if request.method == 'POST':
+        role = request.POST.get('role', '')
+        context = {'next': safe_next, 'selected_role': role}
+
+        def fail(message, status):
+            messages.error(request, message)
+            return render(request, 'login.html', context, status=status)
+
+        if role not in LOGIN_ROLES:
+            return fail('Select your role.', 400)
+
         username, password = request.POST.get('username'), request.POST.get('password')
         user = authenticate(request, username=username, password=password)
         if user is None:
-            # authenticate() rejects inactive accounts outright; tell a signed-up user (who knows their
-            # password) that they are waiting for approval rather than that the password is wrong.
+            # authenticate() rejects inactive accounts outright. Only someone who knows the password
+            # gets a specific message (role or approval); everyone else gets the same neutral one.
             pending = CustomUser.objects.filter(username=username, is_active=False).first()
             if pending and password and pending.check_password(password):
-                messages.error(request, 'Your account is awaiting approval by an admin.')
-                return render(request, 'login.html', {'next': safe_next}, status=403)
-            messages.error(request, 'Invalid username or password.')
-            return render(request, 'login.html', {'next': safe_next}, status=401)
+                if pending.role != role:
+                    return fail(_wrong_role_message(pending), 403)
+                return fail('Your account is awaiting approval by an admin.', 403)
+            return fail(
+                'Invalid username or password for the selected role. Check that the right role is selected.', 401
+            )
 
-        target = dashboard_for(user)
-        if target is None:
-            messages.error(request, 'Your account does not have a role yet. Please contact an admin.')
-            return render(request, 'login.html', {'next': safe_next}, status=403)
+        if user.role != role:
+            return fail(_wrong_role_message(user), 403)
 
         login(request, user)
-        return redirect(safe_next or target)
+        return redirect(safe_next or dashboard_for(user))
 
     return render(request, 'login.html', {'next': safe_next})
 

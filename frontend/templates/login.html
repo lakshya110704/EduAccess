@@ -21,11 +21,17 @@
     <form action="{% url 'login' %}" method="POST">
       {% csrf_token %}
       <input type="hidden" name="next" value="{{ next }}">
+      <select name="role" aria-label="Select your role" required>
+        <option value="" {% if not selected_role %}selected{% endif %} disabled>👤 Select your role</option>
+        <option value="student" {% if selected_role == "student" %}selected{% endif %}>🎓 Student</option>
+        <option value="professor" {% if selected_role == "professor" %}selected{% endif %}>👨‍🏫 Professor</option>
+      </select>
       <input type="text" name="username" placeholder="👤 Username" autocomplete="username" required autofocus>
       <input type="password" name="password" placeholder="🔒 Password" autocomplete="current-password" required>
       <button type="submit"><i class="fas fa-sign-in-alt"></i> Login</button>
     </form>
     <p class="signup-switch">New to EduAccess? <a href="{% url 'signup' %}">Create an account</a></p>
+    <p class="signup-switch">Admin? <a href="{% url 'admin:login' %}">Go to the admin site</a></p>
   </div>
 </body>
 </html>
