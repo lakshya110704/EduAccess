@@ -75,8 +75,17 @@ Tests: `DB_ENGINE=sqlite DJANGO_DEBUG=True python manage.py test api`
 - `Dockerfile` (Python 3.12-slim, hash-checked install, static files collected at build, non-root user,
   gunicorn on :8000), `docker/entrypoint.sh` (runs `migrate` on every start), `docker-compose.yml`
   (`db` = postgres:16 with `pgdata` volume, `web` published on **127.0.0.1:8000 only**).
-- Runs on the homelab in `~/eduaccess` (a clone of this repo). Its `.env` (from `.env.production.example`)
-  lives only on the homelab. Manual deploy: `cd ~/eduaccess && git pull && docker compose up -d --build`.
+- Runs on the homelab in `~/eduaccess` (a clone of this repo, left on a detached HEAD at the deployed
+  commit). Its `.env` (from `.env.production.example`) lives only on the homelab.
+- **Automatic deploys:** the `deploy` job in `ci.yml` runs on pushes to `main` after `lint` and `test` pass.
+  It joins the tailnet as an ephemeral `tag:ci` node (Tailscale OAuth client; secrets `TS_OAUTH_CLIENT_ID`,
+  `TS_OAUTH_SECRET`) and SSHes to `homelab@homelab.tail2734e7.ts.net` with a deploy-only key
+  (`DEPLOY_SSH_KEY`, host key pinned in `DEPLOY_KNOWN_HOSTS`). On the homelab that key is
+  `restrict,command="…/deploy/deploy.sh"` in `authorized_keys`, so it can only run `deploy/deploy.sh <sha>`:
+  the sha must be on `origin/main`; it checks out, `docker compose up -d --build`, and waits for `/healthz/`.
+- Tailscale policy: `tag:ci` may reach only `homelab:22` (policy `tests` enforce this); people's devices use
+  `autogroup:member`, never `*`, so tagged nodes stay restricted.
+- Manual deploy of a commit: `ssh homelab '~/eduaccess/deploy/deploy.sh <full-sha>'`.
 - Access is via Tailscale HTTPS on `homelab.tail2734e7.ts.net` (tailnet devices only), so production's
   HTTPS-only cookies work. Nothing is exposed to the LAN or internet.
 

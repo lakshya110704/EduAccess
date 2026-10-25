@@ -78,3 +78,32 @@ jobs:
 
       - name: Run tests
         run: python manage.py test api
+
+  deploy:
+    # Only commits that reached main and passed every check are deployed; pull requests never deploy.
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: [lint, test]
+    runs-on: ubuntu-latest
+    concurrency:
+      group: deploy-homelab
+      cancel-in-progress: false
+    steps:
+      - name: Join the tailnet as an ephemeral tag:ci node
+        uses: tailscale/github-action@v4
+        with:
+          oauth-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
+          oauth-secret: ${{ secrets.TS_OAUTH_SECRET }}
+          tags: tag:ci
+
+      - name: Deploy this commit on the homelab
+        env:
+          DEPLOY_SSH_KEY: ${{ secrets.DEPLOY_SSH_KEY }}
+          DEPLOY_KNOWN_HOSTS: ${{ secrets.DEPLOY_KNOWN_HOSTS }}
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' "$DEPLOY_SSH_KEY" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          printf '%s\n' "$DEPLOY_KNOWN_HOSTS" > ~/.ssh/known_hosts
+          # The homelab's authorized_keys forces deploy/deploy.sh; the "command" sent here is only the hash.
+          ssh -i ~/.ssh/deploy_key -o IdentitiesOnly=yes -o StrictHostKeyChecking=yes \
+            homelab@homelab.tail2734e7.ts.net "$GITHUB_SHA"
