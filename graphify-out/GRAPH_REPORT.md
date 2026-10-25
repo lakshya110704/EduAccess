@@ -1,17 +1,17 @@
 # Graph Report - EduAccess  (2026-10-25)
 
 ## Corpus Check
-- 28 files · ~292,219 words
+- 29 files · ~292,489 words
 - Verdict: corpus is large enough that graph structure adds value.
-- Unclassified: 9 file(s) not represented in the graph (top: (none) 4, .in 2, .example 1)
+- Unclassified: 12 file(s) not represented in the graph (top: (none) 6, .example 2, .in 2)
 
 ## Summary
-- 286 nodes · 432 edges · 21 communities (11 shown, 10 thin omitted)
+- 289 nodes · 434 edges · 22 communities (11 shown, 11 thin omitted)
 - Extraction: 90% EXTRACTED · 10% INFERRED · 0% AMBIGUOUS · INFERRED: 44 edges (avg confidence: 0.89)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `0fb5a979`
+- Built from commit: `e86c11ca`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -32,30 +32,31 @@
 - EduAccess
 - package.json
 - CustomUser
+- entrypoint.sh
 
 ## God Nodes (most connected - your core abstractions)
 1. `CustomUser` - 16 edges
-2. `Appointment` - 13 edges
-3. `Notification` - 13 edges
-4. `AppointmentAccessTests` - 13 edges
+2. `AppointmentAccessTests` - 13 edges
+3. `Appointment` - 13 edges
+4. `Notification` - 13 edges
 5. `BaseTestCase` - 12 edges
 6. `BookingTests` - 12 edges
 7. `PageTests` - 12 edges
 8. `api()` - 11 edges
-9. `AppointmentViewSet` - 10 edges
-10. `loadAppointments()` - 10 edges
+9. `EduAccess` - 10 edges
+10. `AppointmentSerializer` - 10 edges
 
 ## Surprising Connections (you probably didn't know these)
-- `Update Availability radio group (Free/Busy/Unavailable)` --shares_data_with--> `CustomUser`  [INFERRED]
-  frontend/static/assets/professor.png → api/models.py
-- `Manage Appointments table (Student, Time, Action columns; empty)` --shares_data_with--> `Appointment`  [INFERRED]
-  frontend/static/assets/professor.png → api/models.py
-- `Teal Login button` --shares_data_with--> `login_view()`  [INFERRED]
-  frontend/static/assets/login.png → api/views.py
-- `Select Role dropdown` --shares_data_with--> `login_view()`  [INFERRED]
-  frontend/static/assets/login.png → api/views.py
+- `Layout` --references--> `Appointment`  [INFERRED]
+  CLAUDE.md → api/models.py
+- `Layout` --references--> `CustomUser`  [INFERRED]
+  CLAUDE.md → api/models.py
+- `Layout` --references--> `Notification`  [INFERRED]
+  CLAUDE.md → api/models.py
 - `Layout` --references--> `api()`  [INFERRED]
   CLAUDE.md → frontend/static/script.js
+- `Manage Appointments table (Student, Time, Action columns; empty)` --shares_data_with--> `Appointment`  [INFERRED]
+  frontend/static/assets/professor.png → api/models.py
 
 ## Import Cycles
 - None detected.
@@ -64,11 +65,11 @@
 - **Student Dashboard Features** — frontend_templates_student_dashboard_availability_section, frontend_templates_student_dashboard_locator_section, frontend_templates_student_dashboard_appointment_section, frontend_templates_student_dashboard_notifications_section [EXTRACTED 1.00]
 - **Role-Based UI Templates** — frontend_templates_login, frontend_templates_student_dashboard, frontend_templates_professor_dashboard [INFERRED 0.85]
 
-## Communities (21 total, 10 thin omitted)
+## Communities (22 total, 11 thin omitted)
 
 ### Community 0 - "views.py"
 Cohesion: 0.06
-Nodes (9): dashboard_for(), role_required(), decorator(), logout_view(), MeView, NotificationViewSet, professor_dashboard(), ProfessorViewSet (+1 more)
+Nodes (11): dashboard_for(), IsAppointmentParticipant, role_required(), decorator(), logout_view(), MeView, NotificationViewSet, professor_dashboard() (+3 more)
 
 ### Community 1 - "biome.json"
 Cohesion: 0.12
@@ -99,8 +100,8 @@ Cohesion: 0.10
 Nodes (6): AppointmentAccessTests, BaseTestCase, make_user(), MeTests, NotificationTests, ProfessorDirectoryTests
 
 ### Community 16 - "EduAccess"
-Cohesion: 0.22
-Nodes (8): API, CI, Commits, Dependencies, EduAccess, graphify, Linting and formatting, Running locally
+Cohesion: 0.20
+Nodes (9): API, CI, Commits, Dependencies, Deployment (homelab), EduAccess, graphify, Linting and formatting (+1 more)
 
 ### Community 17 - "package.json"
 Cohesion: 0.20
@@ -108,26 +109,26 @@ Nodes (9): description, devDependencies, @biomejs/biome, name, private, scripts,
 
 ### Community 20 - "CustomUser"
 Cohesion: 0.07
-Nodes (18): CustomUserAdmin, Command, Appointment, CustomUser, Notification, IsAppointmentParticipant, AppointmentStatusSerializer, Meta (+10 more)
+Nodes (16): CustomUserAdmin, Command, Appointment, CustomUser, Notification, AppointmentStatusSerializer, Meta, MeSerializer (+8 more)
 
 ## Knowledge Gaps
 - **11 isolated node(s):** `@biomejs/biome`, `Neoclassical university building with golden dome, palm-lined lawn, blue sky`, `Campus Background Photo (domed administrative building)`, `Django`, `gunicorn + whitenoise (deployment)` (+6 more)
-  These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 124 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
-- **10 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
+  These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 127 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
+- **11 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `Layout` connect `CustomUser` to `EduAccess`, `views.py`, `script.js`?**
+- **Why does `Layout` connect `views.py` to `EduAccess`, `CustomUser`, `script.js`?**
   _High betweenness centrality (0.267) - this node is a cross-community bridge._
 - **Are the 8 inferred relationships involving `CustomUser` (e.g. with `CustomUserAdmin` and `Command`) actually correct?**
   _`CustomUser` has 8 INFERRED edges - model-reasoned connections that need verification._
 - **What connects `@biomejs/biome`, `Neoclassical university building with golden dome, palm-lined lawn, blue sky`, `Campus Background Photo (domed administrative building)` to the rest of the system?**
   _11 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `views.py` be split into smaller, more focused modules?**
-  _Cohesion score 0.06341463414634146 - nodes in this community are weakly interconnected._
-- **Why does `api()` connect `script.js` to `CustomUser`?**
-  _High betweenness centrality (0.220) - this node is a cross-community bridge._
+  _Cohesion score 0.06025369978858351 - nodes in this community are weakly interconnected._
+- **Why does `api()` connect `script.js` to `views.py`?**
+  _High betweenness centrality (0.217) - this node is a cross-community bridge._
 - **Are the 7 inferred relationships involving `Appointment` (e.g. with `AppointmentSerializer` and `AppointmentStatusSerializer`) actually correct?**
   _`Appointment` has 7 INFERRED edges - model-reasoned connections that need verification._
 - **Should `biome.json` be split into smaller, more focused modules?**

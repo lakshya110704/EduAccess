@@ -17,7 +17,8 @@ COPY . .
 # database or uses the secret key for anything, so a throwaway value is fine here.
 RUN DJANGO_SECRET_KEY=collectstatic-only DJANGO_DEBUG=False python manage.py collectstatic --noinput
 
-RUN useradd --system --uid 10001 --no-create-home app
+# gunicorn writes its control socket under the user's home directory, so the user needs one.
+RUN useradd --system --uid 10001 --create-home app
 USER app
 
 EXPOSE 8000

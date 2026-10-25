@@ -114,9 +114,9 @@
     "semantic_hash": ""
   },
   "README.md": {
-    "mtime": 1792922265.4242857,
-    "seen": 1792922446.3619351,
-    "ast_hash": "7150e6f28a0992c6e740e85e803ceed5",
+    "mtime": 1792923681.2372985,
+    "seen": 1792923690.7405078,
+    "ast_hash": "9391a0746170e609c060216a5010ab77",
     "semantic_hash": ""
   },
   "frontend/templates/login.html": {
@@ -198,9 +198,9 @@
     "semantic_hash": ""
   },
   "CLAUDE.md": {
-    "mtime": 1792922265.4237192,
-    "seen": 1792922446.361933,
-    "ast_hash": "82241b2a91c16bd6bfea6415dcad4a77",
+    "mtime": 1792923681.236244,
+    "seen": 1792923690.7405078,
+    "ast_hash": "4f2d8ee0ea19a495fcee86d3b083acc5",
     "semantic_hash": ""
   },
   ".github/workflows/ci.yml": {
@@ -237,6 +237,18 @@
     "mtime": 1792920110.1074295,
     "seen": 1792922446.361941,
     "ast_hash": "127b8b082d6aa0a13409aad938ccd76a",
+    "semantic_hash": ""
+  },
+  "docker/entrypoint.sh": {
+    "mtime": 1792923665.41856,
+    "seen": 1792923690.740499,
+    "ast_hash": "2296a71aee4249203716c8b8c8e1804c",
+    "semantic_hash": ""
+  },
+  "docker-compose.yml": {
+    "mtime": 1792923665.663753,
+    "seen": 1792923690.740509,
+    "ast_hash": "4cf769228a19e7aa058f4e37704898dc",
     "semantic_hash": ""
   }
 }
