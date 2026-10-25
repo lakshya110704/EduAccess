@@ -1,9 +1,9 @@
 # Graph Report - EduAccess  (2026-10-25)
 
 ## Corpus Check
-- 28 files · ~292,164 words
+- 28 files · ~292,219 words
 - Verdict: corpus is large enough that graph structure adds value.
-- Unclassified: 8 file(s) not represented in the graph (top: (none) 3, .in 2, .example 1)
+- Unclassified: 9 file(s) not represented in the graph (top: (none) 4, .in 2, .example 1)
 
 ## Summary
 - 286 nodes · 432 edges · 21 communities (11 shown, 10 thin omitted)
@@ -11,7 +11,7 @@
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `009a541d`
+- Built from commit: `0fb5a979`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -46,16 +46,16 @@
 10. `loadAppointments()` - 10 edges
 
 ## Surprising Connections (you probably didn't know these)
-- `Layout` --references--> `role_required()`  [INFERRED]
-  CLAUDE.md → api/permissions.py
-- `Layout` --references--> `api()`  [INFERRED]
-  CLAUDE.md → frontend/static/script.js
 - `Update Availability radio group (Free/Busy/Unavailable)` --shares_data_with--> `CustomUser`  [INFERRED]
   frontend/static/assets/professor.png → api/models.py
 - `Manage Appointments table (Student, Time, Action columns; empty)` --shares_data_with--> `Appointment`  [INFERRED]
   frontend/static/assets/professor.png → api/models.py
 - `Teal Login button` --shares_data_with--> `login_view()`  [INFERRED]
   frontend/static/assets/login.png → api/views.py
+- `Select Role dropdown` --shares_data_with--> `login_view()`  [INFERRED]
+  frontend/static/assets/login.png → api/views.py
+- `Layout` --references--> `api()`  [INFERRED]
+  CLAUDE.md → frontend/static/script.js
 
 ## Import Cycles
 - None detected.
@@ -111,7 +111,7 @@ Cohesion: 0.07
 Nodes (18): CustomUserAdmin, Command, Appointment, CustomUser, Notification, IsAppointmentParticipant, AppointmentStatusSerializer, Meta (+10 more)
 
 ## Knowledge Gaps
-- **11 isolated node(s):** `@biomejs/biome`, `Username and Password fields with icons`, `EduAccess logo and title branding`, `EduAccess Login Page Screenshot`, `Neoclassical university building with golden dome, palm-lined lawn, blue sky` (+6 more)
+- **11 isolated node(s):** `@biomejs/biome`, `Neoclassical university building with golden dome, palm-lined lawn, blue sky`, `Campus Background Photo (domed administrative building)`, `Django`, `gunicorn + whitenoise (deployment)` (+6 more)
   These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 124 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
 - **10 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
@@ -122,7 +122,7 @@ _Questions this graph is uniquely positioned to answer:_
   _High betweenness centrality (0.267) - this node is a cross-community bridge._
 - **Are the 8 inferred relationships involving `CustomUser` (e.g. with `CustomUserAdmin` and `Command`) actually correct?**
   _`CustomUser` has 8 INFERRED edges - model-reasoned connections that need verification._
-- **What connects `@biomejs/biome`, `Username and Password fields with icons`, `EduAccess logo and title branding` to the rest of the system?**
+- **What connects `@biomejs/biome`, `Neoclassical university building with golden dome, palm-lined lawn, blue sky`, `Campus Background Photo (domed administrative building)` to the rest of the system?**
   _11 weakly-connected nodes found - possible documentation gaps or missing edges._
 - **Should `views.py` be split into smaller, more focused modules?**
   _Cohesion score 0.06341463414634146 - nodes in this community are weakly interconnected._

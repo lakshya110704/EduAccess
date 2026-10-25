@@ -102,7 +102,7 @@ ruff check . && ruff format --check . && npx biome ci frontend/static
 ## 🚀 Production notes
 
 - Set `DJANGO_SECRET_KEY`, `DJANGO_ALLOWED_HOSTS`, `DJANGO_CSRF_TRUSTED_ORIGINS` and the `DB_*` variables; leave `DJANGO_DEBUG` unset.
-- `python manage.py collectstatic --noinput`, then run `gunicorn eduaccess_backend.wsgi` behind an HTTPS proxy that sets `X-Forwarded-Proto`.
+- Docker: `cp .env.production.example .env`, fill it in, then `docker compose up -d --build`. This starts PostgreSQL and the app (gunicorn) on `127.0.0.1:8000`; migrations run on every start. Put an HTTPS proxy that sets `X-Forwarded-Proto` in front of it.
 - `/healthz/` returns `{"status": "ok"}` for load-balancer checks.
 
 ---

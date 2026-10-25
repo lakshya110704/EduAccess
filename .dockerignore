@@ -1,0 +1,15 @@
+.git
+.github
+.env
+.env.*
+!.env.example
+.venv
+eduaccess-env
+node_modules
+graphify-out
+.vibe-wise
+staticfiles
+db.sqlite3
+**/__pycache__
+**/*.pyc
+.DS_Store

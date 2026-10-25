@@ -6,10 +6,10 @@
     "semantic_hash": "d41d8cd98f00b204e9800998ecf8427e"
   },
   "api/admin.py": {
-    "mtime": 1792922378.6863744,
-    "seen": 1792922446.361879,
-    "ast_hash": "cc92fe073ae3cca87afd726e9839101f",
-    "semantic_hash": "cc92fe073ae3cca87afd726e9839101f"
+    "mtime": 1792922439.5877256,
+    "seen": 1792922450.867413,
+    "ast_hash": "3da4d7f827ef330385c4ea8ac83b2017",
+    "semantic_hash": ""
   },
   "api/apps.py": {
     "mtime": 1744899098.0,
@@ -18,22 +18,22 @@
     "semantic_hash": "bab3d631f5f5469f51f393529afba367"
   },
   "api/migrations/0001_initial.py": {
-    "mtime": 1792922378.6871672,
-    "seen": 1792922446.361892,
-    "ast_hash": "2e3983eafd857b3b8edda3ced82cc9c2",
-    "semantic_hash": "2e3983eafd857b3b8edda3ced82cc9c2"
+    "mtime": 1792922439.5880976,
+    "seen": 1792922450.867418,
+    "ast_hash": "14bdfb511d7fe85efadae4aa8b28bb52",
+    "semantic_hash": ""
   },
   "api/migrations/0002_appointment.py": {
-    "mtime": 1792922378.6873088,
-    "seen": 1792922446.3618948,
-    "ast_hash": "7b2f54947cf1c0c6b2091506f8a9c990",
-    "semantic_hash": "7b2f54947cf1c0c6b2091506f8a9c990"
+    "mtime": 1792922439.5877388,
+    "seen": 1792922450.8674188,
+    "ast_hash": "f5b7f82bd84e4798f1e10919499d1490",
+    "semantic_hash": ""
   },
   "api/migrations/0003_notification.py": {
-    "mtime": 1792922378.6874452,
-    "seen": 1792922446.361897,
-    "ast_hash": "8ecd9e4b75e58a01ef49fcc721586748",
-    "semantic_hash": "8ecd9e4b75e58a01ef49fcc721586748"
+    "mtime": 1792922439.5881994,
+    "seen": 1792922450.86742,
+    "ast_hash": "e90e7ea49493adf99484961778c632dc",
+    "semantic_hash": ""
   },
   "api/migrations/__init__.py": {
     "mtime": 1744899098.0,
@@ -42,9 +42,9 @@
     "semantic_hash": "d41d8cd98f00b204e9800998ecf8427e"
   },
   "api/models.py": {
-    "mtime": 1792922380.634394,
-    "seen": 1792922446.361908,
-    "ast_hash": "6273dba034f06e01f102426858947672",
+    "mtime": 1792922439.5876746,
+    "seen": 1792922450.867423,
+    "ast_hash": "e46678bb4c13990671ea2f8de72c56d5",
     "semantic_hash": ""
   },
   "api/serializers.py": {
@@ -54,9 +54,9 @@
     "semantic_hash": ""
   },
   "api/tests.py": {
-    "mtime": 1792922378.6879084,
-    "seen": 1792922446.361912,
-    "ast_hash": "91f8a964598bc2d3d719292f814e26c8",
+    "mtime": 1792922439.5883257,
+    "seen": 1792922450.8674262,
+    "ast_hash": "7cb3817394893c2e60506a904d3c04d2",
     "semantic_hash": ""
   },
   "api/urls.py": {
@@ -66,9 +66,9 @@
     "semantic_hash": ""
   },
   "api/views.py": {
-    "mtime": 1792922380.6345897,
-    "seen": 1792922446.361917,
-    "ast_hash": "935947ec4a430ab31695a5b032034b2d",
+    "mtime": 1792922439.5884643,
+    "seen": 1792922450.867427,
+    "ast_hash": "dca959a608243a6a686359dd212cc4ae",
     "semantic_hash": ""
   },
   "eduaccess_backend/__init__.py": {
@@ -84,9 +84,9 @@
     "semantic_hash": "db74d907f52bc5de1c1e9d20a56ac098"
   },
   "eduaccess_backend/settings.py": {
-    "mtime": 1792922378.688276,
-    "seen": 1792922446.361922,
-    "ast_hash": "66278d1c70ecaa5d9b125c8010257499",
+    "mtime": 1792922439.5881715,
+    "seen": 1792922450.86743,
+    "ast_hash": "c7339f79109a4ec6bcc2479398a2b2ec",
     "semantic_hash": ""
   },
   "eduaccess_backend/urls.py": {
@@ -102,16 +102,16 @@
     "semantic_hash": "f932e5c6e833b9c4e996281520c715f5"
   },
   "frontend/static/script.js": {
-    "mtime": 1792922380.6357915,
-    "seen": 1792922446.3619268,
-    "ast_hash": "f1f1d65c963f02e990aa0ef6570cb6b0",
+    "mtime": 1792922440.639649,
+    "seen": 1792922450.867433,
+    "ast_hash": "88c00b2cd6d7af5e2c9793455f1c43a0",
     "semantic_hash": ""
   },
   "manage.py": {
-    "mtime": 1792922378.6889606,
-    "seen": 1792922446.361928,
-    "ast_hash": "77cd0a20149d49f63a0b84ed1f4d58fd",
-    "semantic_hash": "77cd0a20149d49f63a0b84ed1f4d58fd"
+    "mtime": 1792922439.5881088,
+    "seen": 1792922450.867433,
+    "ast_hash": "db35878b9c84fb3fce360dc790026ab9",
+    "semantic_hash": ""
   },
   "README.md": {
     "mtime": 1792922265.4242857,
@@ -186,9 +186,9 @@
     "semantic_hash": ""
   },
   "api/management/commands/seed_demo.py": {
-    "mtime": 1792922378.686778,
-    "seen": 1792922446.361891,
-    "ast_hash": "66091f945ea83ed01ee9e69176bfd39e",
+    "mtime": 1792922439.587739,
+    "seen": 1792922450.867418,
+    "ast_hash": "ba24f6ea6d017d35ac87870f8395617b",
     "semantic_hash": ""
   },
   "api/permissions.py": {

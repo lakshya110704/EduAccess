@@ -70,6 +70,16 @@ Tests: `DB_ENGINE=sqlite DJANGO_DEBUG=True python manage.py test api`
 - `test` — Python 3.12, a PostgreSQL 16 service container (so tests run on the same database engine as
   production), `makemigrations --check` to catch missing migrations, then `manage.py test api`.
 
+## Deployment (homelab)
+
+- `Dockerfile` (Python 3.12-slim, hash-checked install, static files collected at build, non-root user,
+  gunicorn on :8000), `docker/entrypoint.sh` (runs `migrate` on every start), `docker-compose.yml`
+  (`db` = postgres:16 with `pgdata` volume, `web` published on **127.0.0.1:8000 only**).
+- Runs on the homelab in `~/eduaccess` (a clone of this repo). Its `.env` (from `.env.production.example`)
+  lives only on the homelab. Manual deploy: `cd ~/eduaccess && git pull && docker compose up -d --build`.
+- Access is via Tailscale HTTPS on `homelab.tail2734e7.ts.net` (tailnet devices only), so production's
+  HTTPS-only cookies work. Nothing is exposed to the LAN or internet.
+
 ## Commits
 
 Never add `Co-Authored-By` or other AI attribution lines to commits or PRs.
