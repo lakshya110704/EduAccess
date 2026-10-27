@@ -111,6 +111,8 @@ AUTH_PASSWORD_VALIDATORS = [
 
 AUTH_USER_MODEL = 'api.CustomUser'
 LOGIN_URL = '/login/'
+# Only Django's own LogoutView (the admin's) uses this; the app's /logout/ redirects to /login/ itself.
+LOGOUT_REDIRECT_URL = '/admin/login/'
 
 # Self sign-up: each role must register with its college email domain.
 SIGNUP_EMAIL_DOMAINS = {

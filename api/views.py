@@ -125,7 +125,7 @@ LOGIN_ROLES = {'student': 'Student', 'professor': 'Professor'}
 def _wrong_role_message(user):
     if user.role in LOGIN_ROLES:
         return f'This is a {LOGIN_ROLES[user.role].lower()} account. Is the role selected right?'
-    return 'This account is not a student or professor account. Admins sign in through the admin site.'
+    return 'This account cannot sign in here.'
 
 
 def login_view(request):

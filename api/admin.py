@@ -48,6 +48,10 @@ class CustomUserAdmin(UserAdmin):
         self.message_user(request, f'Activated {updated} account(s).', messages.SUCCESS)
 
 
+admin.site.site_header = 'EduAccess Admin'
+admin.site.site_title = 'EduAccess Admin'
+admin.site.index_title = 'Manage EduAccess'
+
 admin.site.register(CustomUser, CustomUserAdmin)
 admin.site.register(Appointment)
 admin.site.register(Notification)

@@ -1,0 +1,55 @@
+/* EduAccess colours for the Django admin, via the admin's own CSS variables. */
+:root,
+html[data-theme="light"],
+html[data-theme="auto"] {
+  --primary: #00bfa6;
+  --secondary: #00695c;
+  --header-bg: #0b1f33;
+  --header-color: #b2fefa;
+  --header-link-color: #ffffff;
+  --link-fg: #00796b;
+  --link-hover-color: #004d40;
+  --button-bg: #00897b;
+  --button-hover-bg: #00695c;
+  --default-button-bg: #00695c;
+  --default-button-hover-bg: #004d40;
+}
+
+html[data-theme="dark"] {
+  --primary: #00695c;
+  --header-bg: #0b1f33;
+  --header-color: #b2fefa;
+  --link-fg: #4dd0c1;
+}
+
+@media (prefers-color-scheme: dark) {
+  html[data-theme="auto"] {
+    --primary: #00695c;
+    --header-bg: #0b1f33;
+    --header-color: #b2fefa;
+    --link-fg: #4dd0c1;
+  }
+}
+
+#site-name a.eduaccess-brand:link,
+#site-name a.eduaccess-brand:visited {
+  color: #b2fefa;
+}
+
+.eduaccess-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.eduaccess-brand-logo {
+  height: 32px;
+  width: auto;
+  border-radius: 4px;
+}
+
+.login .staff-signin {
+  font-size: 1.1rem;
+  margin: 0 0 1rem;
+  color: var(--body-quiet-color);
+}

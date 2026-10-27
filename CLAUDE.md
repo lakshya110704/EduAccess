@@ -12,13 +12,22 @@ availability, cabin locator and appointment booking for students and professors.
 - `api/views.py` — API viewsets + page views. Login has a role dropdown (Student/Professor): it succeeds only if
   the credentials belong to an account **of that role** (the stored role decides, the dropdown only has to
   match). Correct credentials + wrong role → "This is a {role} account. Is the role selected right?"; wrong
-  credentials → one neutral message for any role (no account enumeration). Admins use `/admin/` (linked).
+  credentials → one neutral message for any role (no account enumeration). The public login has no link to the
+  admin; staff go to `/admin/` directly.
 - `api/serializers.py` — validation lives here (future-only times, no double-booking, professor must be a professor, status transitions)
 - `api/forms.py` — `SignupForm`: self-registration rules (role whitelist, email domain per role, unique email
   and college ID, password validators); saves accounts **inactive**
 - `api/management/commands/seed_demo.py` — demo users for local runs (DEBUG only)
 - `frontend/templates/` — `login.html`, `student-dashboard.html`, `professor-dashboard.html` (`<body data-page=...>` selects the JS behaviour)
 - `frontend/static/script.js` — all frontend logic: `api()` fetch wrapper (CSRF header, relative `/api`), renders with `textContent` only, polls every 10s while the tab is visible
+
+## Admin site
+
+- Branded via `frontend/templates/admin/base_site.html` (logo, "EduAccess Admin") and `frontend/static/admin-theme.css`
+  (Django admin CSS variables → teal/navy); `frontend/templates/admin/login.html` adds "Staff sign-in".
+  Titles set on `admin.site` in `api/admin.py`.
+- `LOGOUT_REDIRECT_URL = '/admin/login/'` — only Django's own logout (the admin's) uses it; the app's `/logout/`
+  still returns to `/login/`.
 
 ## Accounts and sign-up
 

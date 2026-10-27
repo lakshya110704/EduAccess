@@ -223,7 +223,7 @@ class PageTests(BaseTestCase):
     def test_user_without_role_is_not_logged_in(self):
         make_user('nobody', '')
         resp = self.login('nobody')
-        self.assertContains(resp, 'Admins sign in through the admin site', status_code=403)
+        self.assertContains(resp, 'This account cannot sign in here.', status_code=403)
         self.assertNotIn('_auth_user_id', self.client.session)
 
     def test_unsafe_next_is_ignored(self):
@@ -389,3 +389,23 @@ class SignupTests(TestCase):
         login_page = self.client.get('/login/')
         self.assertContains(login_page, 'href="/signup/"')
         self.assertContains(login_page, 'name="role"')
+
+
+class AdminSeparationTests(BaseTestCase):
+    def test_admin_login_is_branded(self):
+        resp = self.client.get('/admin/login/')
+        self.assertContains(resp, 'EduAccess Admin')
+        self.assertContains(resp, 'Staff sign-in')
+        self.assertNotContains(resp, 'Django administration')
+
+    def test_public_login_has_no_admin_link(self):
+        self.assertNotContains(self.client.get('/login/'), '/admin/')
+
+    def test_admin_logout_returns_to_admin_login(self):
+        admin_user = CustomUser.objects.create_superuser(username='boss', password='pass-1234-word')
+        self.client.force_login(admin_user)
+        self.assertRedirects(self.client.post('/admin/logout/'), '/admin/login/', fetch_redirect_response=False)
+
+    def test_app_logout_still_returns_to_app_login(self):
+        self.client.force_login(self.student)
+        self.assertRedirects(self.client.post('/logout/'), '/login/', fetch_redirect_response=False)
