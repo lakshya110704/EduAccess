@@ -19,7 +19,11 @@ availability, cabin locator and appointment booking for students and professors.
   and college ID, password validators); saves accounts **inactive**
 - `api/management/commands/seed_demo.py` — demo users for local runs (DEBUG only)
 - `frontend/templates/` — `login.html`, `student-dashboard.html`, `professor-dashboard.html` (`<body data-page=...>` selects the JS behaviour)
-- `frontend/static/script.js` — all frontend logic: `api()` fetch wrapper (CSRF header, relative `/api`), renders with `textContent` only, polls every 10s while the tab is visible
+- Role themes: `styles.css` defines colour variables per `<body data-theme="student|professor">` (student teal,
+  professor indigo + amber). Login/sign-up use a shared radio-based switch (`templates/role-switch.html`) that
+  drives the theme via CSS `:has()`; `static/role-switch.js` swaps the heading icon, remembers the last role in
+  localStorage and emits a `rolechange` event (used by `signup.js`). Dashboards are stamped with their role's theme.
+- `frontend/static/script.js` — all dashboard logic: `api()` fetch wrapper (CSRF header, relative `/api`), renders with `textContent` only, polls every 10s while the tab is visible
 
 ## Admin site
 

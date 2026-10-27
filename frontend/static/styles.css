@@ -1,3 +1,32 @@
+/* Role themes. Student (default) is teal; professor is deep indigo with amber accents.
+   Pages pick a theme with <body data-theme="...">; on login/sign-up the role switch also drives it
+   directly through :has(), so the theme follows the switch even without JavaScript. */
+:root,
+body[data-theme="student"] {
+  --accent: #00bfa6;
+  --accent-hover: #009688;
+  --header-bg: rgba(0, 100, 80, 0.8);
+  --link: #b2fefa;
+  --heading: #00ffc8;
+  --tint: rgba(0, 60, 50, 0.25);
+}
+
+body[data-theme="professor"],
+body:has(.role-switch input[value="professor"]:checked) {
+  --accent: #3949ab;
+  --accent-hover: #283593;
+  --header-bg: rgba(26, 35, 126, 0.85);
+  --link: #ffca28;
+  --heading: #ffb300;
+  --tint: rgba(26, 35, 126, 0.45);
+}
+
+button,
+.dashboard-header,
+.background-blur::after {
+  transition: background-color 0.35s ease, color 0.35s ease;
+}
+
 body {
   font-family: 'Segoe UI', sans-serif;
   margin: 0;
@@ -70,14 +99,14 @@ body {
 }
 
 .login-container button {
-  background-color: #00bfa6;
+  background-color: var(--accent);
   color: white;
   font-weight: bold;
   transition: background-color 0.3s ease;
 }
 
 .login-container button:hover {
-  background-color: #009688;
+  background-color: var(--accent-hover);
 }
 
 .logo {
@@ -105,7 +134,7 @@ body {
 }
 
 .dashboard-header {
-  background-color: rgba(0, 100, 80, 0.8);
+  background-color: var(--header-bg);
   padding: 1rem 2rem;
   display: flex;
   align-items: center;
@@ -127,7 +156,7 @@ body {
 
 .dashboard-header nav a {
   margin-right: 15px;
-  color: #b2fefa;
+  color: var(--link);
   text-decoration: none;
   font-weight: bold;
 }
@@ -151,7 +180,7 @@ section {
 }
 
 section h3 {
-  color: #00ffc8;
+  color: var(--heading);
   margin-bottom: 1rem;
 }
 
@@ -175,7 +204,7 @@ input::placeholder {
 }
 
 button {
-  background-color: #00bfa6;
+  background-color: var(--accent);
   color: white;
   font-weight: bold;
   cursor: pointer;
@@ -183,7 +212,7 @@ button {
 }
 
 button:hover {
-  background-color: #009688;
+  background-color: var(--accent-hover);
 }
 
 table {
@@ -275,7 +304,7 @@ table button.action-cancel {
   margin-top: 0;
 }
 
-table button.action-confirm { background: #00bfa6; }
+table button.action-confirm { background: var(--accent); }
 table button.action-cancel { background: rgba(239, 83, 80, 0.7); }
 
 .radio-row label {
@@ -310,7 +339,7 @@ table button.action-cancel { background: rgba(239, 83, 80, 0.7); }
   color: #ddd;
 }
 
-.signup-switch a { color: #b2fefa; }
+.signup-switch a { color: var(--link); }
 
 .signup-label {
   display: block;
@@ -326,4 +355,79 @@ table button.action-cancel { background: rgba(239, 83, 80, 0.7); }
   font-size: 0.85rem;
   text-align: left;
   margin: -4px 0 6px;
+}
+
+/* Tint over the blurred campus photo, coloured by the active theme. */
+.background-blur::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-color: var(--tint);
+}
+
+/* Role switch: two radio buttons styled as one sliding pill. */
+.role-switch {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  margin: 10px 0;
+  padding: 4px;
+  border: none;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.role-switch legend {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+}
+
+.role-switch input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.role-switch label {
+  position: relative;
+  z-index: 1;
+  padding: 0.55rem 0;
+  text-align: center;
+  font-weight: bold;
+  cursor: pointer;
+  color: #eee;
+}
+
+.role-switch::before {
+  content: "";
+  position: absolute;
+  top: 4px;
+  bottom: 4px;
+  left: 4px;
+  width: calc(50% - 4px);
+  border-radius: 999px;
+  background: var(--accent);
+  transition: transform 0.35s ease, background-color 0.35s ease;
+}
+
+.role-switch:has(input[value="professor"]:checked)::before {
+  transform: translateX(100%);
+}
+
+.role-switch input:checked + label {
+  color: #fff;
+}
+
+.role-switch input:focus-visible + label {
+  outline: 2px solid var(--heading);
+  outline-offset: 2px;
+  border-radius: 999px;
+}
+
+.role-icon {
+  color: var(--heading);
+  transition: color 0.35s ease;
 }

@@ -218,7 +218,7 @@ class PageTests(BaseTestCase):
 
     def test_selected_role_kept_after_failure(self):
         resp = self.client.post('/login/', {'role': 'professor', 'username': 'x', 'password': 'y'})
-        self.assertContains(resp, '<option value="professor" selected>', status_code=401)
+        self.assertContains(resp, 'id="role-professor" value="professor" checked', status_code=401)
 
     def test_user_without_role_is_not_logged_in(self):
         make_user('nobody', '')
@@ -409,3 +409,24 @@ class AdminSeparationTests(BaseTestCase):
     def test_app_logout_still_returns_to_app_login(self):
         self.client.force_login(self.student)
         self.assertRedirects(self.client.post('/logout/'), '/login/', fetch_redirect_response=False)
+
+
+class ThemeAndSwitchTests(BaseTestCase):
+    def test_login_and_signup_render_the_role_switch(self):
+        for url in ('/login/', '/signup/'):
+            resp = self.client.get(url)
+            self.assertContains(resp, 'class="role-switch"')
+            self.assertContains(resp, 'id="role-student" value="student" checked')
+            self.assertContains(resp, 'id="role-professor" value="professor"')
+            self.assertContains(resp, 'data-theme="student"')
+
+    def test_failed_professor_login_keeps_professor_theme(self):
+        resp = self.client.post('/login/', {'role': 'professor', 'username': 'x', 'password': 'y'})
+        self.assertContains(resp, 'id="role-professor" value="professor" checked', status_code=401)
+        self.assertContains(resp, 'data-theme="professor"', status_code=401)
+
+    def test_dashboards_keep_their_role_theme(self):
+        self.client.force_login(self.student)
+        self.assertContains(self.client.get('/student/'), 'data-theme="student"')
+        self.client.force_login(self.prof)
+        self.assertContains(self.client.get('/professor/'), 'data-theme="professor"')

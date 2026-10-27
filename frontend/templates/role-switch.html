@@ -1,0 +1,8 @@
+{# Student/Professor switch shared by login and sign-up. `selected` is "student" or "professor". #}
+<fieldset class="role-switch">
+  <legend>I am a</legend>
+  <input type="radio" name="role" id="role-student" value="student" {% if selected != "professor" %}checked{% endif %}>
+  <label for="role-student">🎓 Student</label>
+  <input type="radio" name="role" id="role-professor" value="professor" {% if selected == "professor" %}checked{% endif %}>
+  <label for="role-professor">👨‍🏫 Professor</label>
+</fieldset>
