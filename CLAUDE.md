@@ -23,6 +23,11 @@ availability, cabin locator and appointment booking for students and professors.
   professor indigo + amber). Login/sign-up use a shared radio-based switch (`templates/role-switch.html`) that
   drives the theme via CSS `:has()`; `static/role-switch.js` swaps the heading icon, remembers the last role in
   localStorage and emits a `rolechange` event (used by `signup.js`). Dashboards are stamped with their role's theme.
+- Dashboards are deliberately minimal. Student: My Professors (+ Add / ✕ Remove), My Appointments, Notifications;
+  header buttons open `<dialog class="panel">` pop-ups for Find a professor and Book appointment. Professor:
+  Appointments, Notifications; header has the Free/Busy/Unavailable segmented switch and an Open time pop-up.
+  Keep new features in header actions or panels rather than adding sections. Dialog wiring: `data-open-dialog`
+  / `data-close-dialog` in `script.js`.
 - `frontend/static/script.js` — all dashboard logic: `api()` fetch wrapper (CSRF header, relative `/api`), renders with `textContent` only, polls every 10s while the tab is visible
 
 ## Admin site

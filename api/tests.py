@@ -615,3 +615,25 @@ class OpenTimeTests(BaseTestCase):
         self.assertEqual(len(self.as_user(self.prof).get('/api/open-times/').json()), 1)
         self.assertEqual(self.as_user(self.other_prof).delete(f'/api/open-times/{window_id}/').status_code, 404)
         self.assertEqual(self.as_user(self.prof).delete(f'/api/open-times/{window_id}/').status_code, 204)
+
+
+class DashboardLayoutTests(BaseTestCase):
+    def sections(self, html):
+        import re
+
+        return re.findall(r'<section id="([^"]+)"', html)
+
+    def test_student_dashboard_is_three_sections_plus_dialogs(self):
+        self.client.force_login(self.student)
+        html = self.client.get('/student/').content.decode()
+        self.assertEqual(self.sections(html), ['availability', 'my-appointments', 'notifications'])
+        self.assertIn('id="find-dialog"', html)
+        self.assertIn('id="book-dialog"', html)
+        self.assertIn('data-open-dialog="find-dialog"', html)
+
+    def test_professor_dashboard_is_appointments_and_notifications(self):
+        self.client.force_login(self.prof)
+        html = self.client.get('/professor/').content.decode()
+        self.assertEqual(self.sections(html), ['appointments', 'notifications'])
+        self.assertIn('id="open-time-dialog"', html)
+        self.assertIn('class="segmented status-switch"', html)

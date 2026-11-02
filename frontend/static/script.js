@@ -56,7 +56,9 @@ function showMessage(id, text, kind = "success") {
   const box = document.getElementById(id);
   if (!box) return;
   box.textContent = text;
-  box.className = `flash form-message flash-${kind}`;
+  // Swap only the colour class so extra classes on the box (e.g. header-toast) survive.
+  box.classList.remove("flash-success", "flash-error");
+  box.classList.add(`flash-${kind}`);
 }
 
 function emptyRow(tbody, colspan, text) {
@@ -202,9 +204,10 @@ async function loadProfessors() {
 function bookProfessor(professor) {
   bookedFromSearch = professor;
   loadProfessors().then(() => {
+    document.getElementById("find-dialog").close();
+    openDialog("book-dialog");
     document.getElementById("professor-select").value = String(professor.id);
-    document.getElementById("booking").scrollIntoView({ behavior: "smooth" });
-    document.getElementById("appointment-datetime").focus({ preventScroll: true });
+    document.getElementById("appointment-datetime").focus();
   });
 }
 
@@ -275,6 +278,11 @@ async function submitAppointment(event) {
     showMessage("appointment-message", "Appointment requested. You'll be notified when the professor responds.");
     event.target.reset();
     loadAppointments();
+    // Close the panel shortly after success; the request now shows under My Appointments.
+    setTimeout(() => {
+      document.getElementById("book-dialog").close();
+      showMessage("appointment-message", "", "success");
+    }, 1500);
   } catch (error) {
     showMessage("appointment-message", error.message, "error");
   } finally {
@@ -289,6 +297,11 @@ async function updateAvailability(event) {
   try {
     await api("/me/", { method: "PATCH", body: { availability_status: status } });
     showMessage("availability-message", `Status set to ${status}.`);
+    // Brief confirmation only; clear it unless a newer message replaced it.
+    setTimeout(() => {
+      const box = document.getElementById("availability-message");
+      if (box.textContent === `Status set to ${status}.`) box.textContent = "";
+    }, 3000);
   } catch (error) {
     showMessage("availability-message", error.message, "error");
   }
@@ -343,6 +356,38 @@ async function addOpenTime(event) {
   }
 }
 
+// ---------- pop-up panels ----------
+
+function openDialog(id) {
+  const dialog = document.getElementById(id);
+  if (!dialog.open) dialog.showModal();
+  dialog.querySelector("input:not([type=hidden]), select")?.focus();
+}
+
+function wireDialogs() {
+  for (const opener of document.querySelectorAll("[data-open-dialog]")) {
+    opener.addEventListener("click", () => openDialog(opener.dataset.openDialog));
+  }
+  for (const dialog of document.querySelectorAll("dialog.panel")) {
+    for (const closer of dialog.querySelectorAll("[data-close-dialog]")) {
+      closer.addEventListener("click", () => dialog.close());
+    }
+    // A click on the dimmed backdrop closes it. Backdrop clicks target the <dialog> itself; checking that
+    // first matters because pressing Enter in a form fires a synthetic click at (0, 0) on the submit button,
+    // which would otherwise look like a click outside the panel.
+    dialog.addEventListener("click", (event) => {
+      if (event.target !== dialog) return;
+      const box = dialog.getBoundingClientRect();
+      const inside =
+        event.clientX >= box.left &&
+        event.clientX <= box.right &&
+        event.clientY >= box.top &&
+        event.clientY <= box.bottom;
+      if (!inside) dialog.close();
+    });
+  }
+}
+
 // ---------- init ----------
 
 function refresh() {
@@ -354,6 +399,7 @@ function refresh() {
 }
 
 window.addEventListener("DOMContentLoaded", () => {
+  wireDialogs();
   if (PAGE === "student") {
     // Earliest choice: the next quarter hour, in local time (bookings start on :00/:15/:30/:45).
     const quarter = 15 * 60000;

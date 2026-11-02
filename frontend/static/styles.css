@@ -448,3 +448,147 @@ table button.action-add { background: transparent; border: 1px solid var(--headi
 table button.action-added { background: transparent; color: #bbb; cursor: default; }
 table button.action-added:hover { transform: none; }
 #search-results-table { margin-top: 1rem; }
+
+/* ---------- Dashboard layout: actions in the header, essentials on the page ---------- */
+
+.header-right {
+  gap: 0.6rem;
+}
+
+.header-btn,
+.section-btn,
+.panel-close,
+.logout-form button {
+  width: auto;
+  max-width: none;
+  margin: 0;
+}
+
+.header-btn {
+  padding: 0.45rem 0.9rem;
+  background-color: var(--accent);
+  border-radius: 999px;
+}
+
+.header-btn:hover {
+  background-color: var(--accent-hover);
+}
+
+.section-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.section-btn {
+  padding: 0.35rem 0.8rem;
+  font-size: 0.9rem;
+  border-radius: 999px;
+  background: transparent;
+  border: 1px solid var(--heading);
+  color: var(--heading);
+}
+
+/* Segmented control (professor status), same look as the role switch. */
+.segmented {
+  display: inline-flex;
+  margin: 0;
+  padding: 3px;
+  border: none;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.segmented input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.segmented label {
+  padding: 0.35rem 0.8rem;
+  border-radius: 999px;
+  font-weight: bold;
+  font-size: 0.9rem;
+  cursor: pointer;
+  color: #eee;
+  transition: background-color 0.35s ease;
+}
+
+.segmented input:checked + label {
+  background-color: var(--accent);
+  color: #fff;
+}
+
+.segmented input:focus-visible + label {
+  outline: 2px solid var(--heading);
+  outline-offset: 2px;
+}
+
+.header-toast {
+  position: fixed;
+  top: 5.5rem;
+  right: 2rem;
+  z-index: 5;
+}
+
+/* Pop-up panels (native <dialog>), styled like the glass cards. */
+dialog.panel {
+  width: min(680px, 92vw);
+  max-height: 85vh;
+  overflow-y: auto;
+  padding: 1.5rem;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 16px;
+  background: rgba(18, 24, 38, 0.92);
+  color: white;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+}
+
+dialog.panel::backdrop {
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(3px);
+}
+
+.panel-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 0.5rem;
+}
+
+.panel-head h3 {
+  margin: 0;
+  color: var(--heading);
+}
+
+.panel-close {
+  padding: 0.3rem 0.6rem;
+  background: rgba(255, 255, 255, 0.12);
+  font-size: 1rem;
+}
+
+dialog.panel label {
+  display: block;
+  margin-top: 0.6rem;
+}
+
+dialog.panel input,
+dialog.panel select,
+dialog.panel button[type="submit"] {
+  box-sizing: border-box;
+  max-width: none;
+}
+
+@media (max-width: 720px) {
+  .header-right {
+    width: 100%;
+    margin-top: 0.75rem;
+  }
+}
+
+/* Professor status switch: the selected status uses the same colours as status text elsewhere. */
+.status-switch input[value="Free"]:checked + label { background-color: #00c853; color: #fff; }
+.status-switch input[value="Busy"]:checked + label { background-color: #ff9800; color: #1a1a1a; }
+.status-switch input[value="Unavailable"]:checked + label { background-color: #e53935; color: #fff; }
