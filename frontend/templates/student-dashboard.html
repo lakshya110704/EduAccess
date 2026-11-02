@@ -59,8 +59,14 @@
         <label>Professor:
           <select id="professor-select" required></select>
         </label>
-        <label>Time Slot:
-          <input type="datetime-local" id="appointment-datetime" required>
+        <label>Start time:
+          <input type="datetime-local" id="appointment-datetime" step="900" required>
+        </label>
+        <label>Length:
+          <select id="appointment-slots">
+            <option value="1">15 minutes</option>
+            <option value="2">30 minutes (2 slots)</option>
+          </select>
         </label>
         <button type="submit"><i class="fas fa-check-circle"></i> Submit</button>
         <div id="appointment-message" class="flash form-message" role="status"></div>

@@ -1,5 +1,7 @@
 from datetime import timedelta
+from unittest import skipUnless
 
+from django.db import IntegrityError, connection, transaction
 from django.test import TestCase
 from django.utils import timezone
 from rest_framework.test import APIClient
@@ -17,16 +19,22 @@ class BaseTestCase(TestCase):
         self.other_student = make_user('stu2', 'student')
         self.prof = make_user('prof', 'professor', first_name='Ada', last_name='Lovelace', cabin_number='A-105')
         self.other_prof = make_user('prof2', 'professor')
-        self.future = timezone.now() + timedelta(days=1)
+        # Tomorrow, rounded down to a quarter hour (bookings must start on :00/:15/:30/:45).
+        self.future = (timezone.now() + timedelta(days=1)).replace(second=0, microsecond=0)
+        self.future -= timedelta(minutes=self.future.minute % 15)
         self.client = APIClient()
 
     def as_user(self, user):
         self.client.force_authenticate(user)
         return self.client
 
-    def book(self, student=None, professor=None, when=None):
+    def book(self, student=None, professor=None, when=None, slots=1, status='Pending'):
         return Appointment.objects.create(
-            student=student or self.student, professor=professor or self.prof, appointment_time=when or self.future
+            student=student or self.student,
+            professor=professor or self.prof,
+            appointment_time=when or self.future,
+            slots=slots,
+            status=status,
         )
 
 
@@ -106,8 +114,12 @@ class BookingTests(BaseTestCase):
         past = (timezone.now() - timedelta(hours=1)).isoformat()
         self.assertEqual(self.post(self.student, appointment_time=past).status_code, 400)
 
-    def test_cannot_double_book_a_slot(self):
+    def test_pending_requests_for_the_same_slot_are_allowed(self):
         self.book(student=self.other_student)
+        self.assertEqual(self.post(self.student).status_code, 201)
+
+    def test_cannot_request_a_confirmed_slot(self):
+        self.book(student=self.other_student, status='Confirmed')
         self.assertEqual(self.post(self.student).status_code, 400)
 
     def test_can_rebook_a_cancelled_slot(self):
@@ -481,3 +493,59 @@ class MyProfessorTests(BaseTestCase):
             format='json',
         )
         self.assertEqual(resp.status_code, 201, resp.content)
+
+
+class BookingRuleTests(BaseTestCase):
+    def post(self, when, slots=1, student=None):
+        return self.as_user(student or self.student).post(
+            '/api/appointments/',
+            {'professor': self.prof.id, 'appointment_time': when.isoformat(), 'slots': slots},
+            format='json',
+        )
+
+    def confirm(self, appt):
+        return self.as_user(self.prof).patch(f'/api/appointments/{appt.id}/', {'status': 'Confirmed'}, format='json')
+
+    def test_must_start_on_quarter_hour(self):
+        self.assertEqual(self.post(self.future + timedelta(minutes=7)).status_code, 400)
+        self.assertEqual(self.post(self.future + timedelta(minutes=15)).status_code, 201)
+
+    def test_one_or_two_slots(self):
+        resp = self.post(self.future, slots=2)
+        self.assertEqual(resp.status_code, 201)
+        self.assertEqual(Appointment.objects.get().end_time, self.future + timedelta(minutes=30))
+        self.assertEqual(self.post(self.future + timedelta(hours=2), slots=3).status_code, 400)
+
+    def test_overlap_with_confirmed_is_refused_but_adjacent_is_fine(self):
+        self.book(student=self.other_student, slots=2, status='Confirmed')  # covers future .. future+30
+        self.assertEqual(self.post(self.future + timedelta(minutes=15)).status_code, 400)
+        self.assertEqual(self.post(self.future + timedelta(minutes=30)).status_code, 201)
+
+    def test_confirming_declines_overlapping_requests_and_notifies(self):
+        mine = self.book(slots=2)
+        clash = self.book(student=self.other_student, when=self.future + timedelta(minutes=15))
+        later = self.book(student=self.other_student, when=self.future + timedelta(minutes=30))
+        self.assertEqual(self.confirm(mine).status_code, 200)
+        clash.refresh_from_db()
+        later.refresh_from_db()
+        self.assertEqual((clash.status, later.status), ('Cancelled', 'Pending'))
+        note = Notification.objects.get(user=self.other_student)
+        self.assertIn('was taken. Please pick another slot.', note.message)
+
+    def test_cannot_confirm_over_another_confirmed(self):
+        self.book(student=self.other_student, status='Confirmed')
+        pending = self.book()
+        resp = self.confirm(pending)
+        self.assertContains(resp, 'overlaps another confirmed appointment', status_code=400)
+
+    def test_notification_times_are_local(self):
+        appt = self.book()
+        self.confirm(appt)
+        local = timezone.localtime(appt.appointment_time)
+        self.assertIn(f'{local:%H:%M}', Notification.objects.get(user=self.student).message)
+
+    @skipUnless(connection.vendor == 'postgresql', 'exclusion constraint is PostgreSQL-only')
+    def test_database_refuses_overlapping_confirmations(self):
+        self.book(status='Confirmed')
+        with self.assertRaises(IntegrityError), transaction.atomic():
+            self.book(student=self.other_student, when=self.future + timedelta(minutes=10), status='Confirmed')

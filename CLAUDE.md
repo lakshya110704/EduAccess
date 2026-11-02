@@ -53,6 +53,12 @@ All endpoints need a logged-in session; writes need the `X-CSRFToken` header.
   **all** professors (>= 2 chars, top 20, each with `is_mine`). `POST`/`DELETE /api/professors/<id>/mine/` adds/removes
   (students only). Built for ~1000 professors: the dashboard only polls the student's own list.
 - `GET|PATCH /api/me/` — current user; professors PATCH `availability_status`
+- Booking rules: 15-minute slots (`SLOT_LENGTH`), a request covers `slots` = 1 or 2, starting on a quarter hour;
+  `end_time` is stored (set in `Appointment.save`). Overlapping *pending* requests are allowed; requests overlapping a
+  *confirmed* appointment are refused. Confirming one auto-declines (Cancelled + notification) the overlapping
+  pending ones. Postgres enforces "no overlapping confirmed appointments per professor" with an exclusion
+  constraint (`appointment_no_confirmed_overlap`, migration 0007, needs `btree_gist`; skipped on SQLite) — a racing
+  second confirmation raises IntegrityError, returned as a 400.
 - `GET|POST /api/appointments/`, `GET|PATCH /api/appointments/<id>/` — students book; only `status` is patchable after booking: professor → Confirmed/Cancelled, student → Cancelled; Cancelled is final. No PUT/DELETE. Each change notifies the other party
 - `GET /api/notifications/` — own notifications, newest first
 

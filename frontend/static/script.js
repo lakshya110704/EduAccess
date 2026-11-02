@@ -64,6 +64,8 @@ function emptyRow(tbody, colspan, text) {
 }
 
 const formatTime = (iso) => new Date(iso).toLocaleString([], { dateStyle: "medium", timeStyle: "short" });
+const formatRange = (startIso, endIso) =>
+  `${formatTime(startIso)}–${new Date(endIso).toLocaleTimeString([], { timeStyle: "short" })}`;
 
 // ---------- shared ----------
 
@@ -124,7 +126,7 @@ async function loadAppointments() {
         }
         return el("tr", {}, [
           el("td", { text: isProfessor ? a.student_name : a.professor_name }),
-          el("td", { text: formatTime(a.appointment_time) }),
+          el("td", { text: formatRange(a.appointment_time, a.end_time) }),
           el("td", { text: a.status, className: `status-${a.status.toLowerCase()}` }),
           actions,
         ]);
@@ -256,7 +258,11 @@ async function submitAppointment(event) {
     // datetime-local has no zone; send it as the browser's local time in ISO form.
     await api("/appointments/", {
       method: "POST",
-      body: { professor: Number(professor), appointment_time: new Date(datetime).toISOString() },
+      body: {
+        professor: Number(professor),
+        appointment_time: new Date(datetime).toISOString(),
+        slots: Number(document.getElementById("appointment-slots").value),
+      },
     });
     showMessage("appointment-message", "Appointment requested. You'll be notified when the professor responds.");
     event.target.reset();
@@ -291,7 +297,10 @@ function refresh() {
 
 window.addEventListener("DOMContentLoaded", () => {
   if (PAGE === "student") {
-    const minTime = new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+    // Earliest choice: the next quarter hour, in local time (bookings start on :00/:15/:30/:45).
+    const quarter = 15 * 60000;
+    const next = Math.ceil(Date.now() / quarter) * quarter;
+    const minTime = new Date(next - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16);
     document.getElementById("appointment-datetime").min = minTime;
     document.getElementById("appointment-form").addEventListener("submit", submitAppointment);
     document.getElementById("search-form").addEventListener("submit", searchProfessors);

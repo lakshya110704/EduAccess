@@ -1,7 +1,7 @@
 from django.utils import timezone
 from rest_framework import serializers
 
-from .models import Appointment, CustomUser, Notification
+from .models import SLOT_LENGTH, Appointment, CustomUser, Notification
 
 
 class ProfessorSerializer(serializers.ModelSerializer):
@@ -47,8 +47,18 @@ class AppointmentSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Appointment
-        fields = ['id', 'student', 'student_name', 'professor', 'professor_name', 'appointment_time', 'status']
-        read_only_fields = ['id', 'student', 'status']
+        fields = [
+            'id',
+            'student',
+            'student_name',
+            'professor',
+            'professor_name',
+            'appointment_time',
+            'slots',
+            'end_time',
+            'status',
+        ]
+        read_only_fields = ['id', 'student', 'end_time', 'status']
 
     def get_student_name(self, obj):
         return obj.student.get_full_name() or obj.student.username
@@ -64,19 +74,20 @@ class AppointmentSerializer(serializers.ModelSerializer):
     def validate_appointment_time(self, value):
         if value <= timezone.now():
             raise serializers.ValidationError('Appointment time must be in the future.')
+        local = timezone.localtime(value)
+        if local.minute % 15 or local.second or local.microsecond:
+            raise serializers.ValidationError('Appointments start on the quarter hour (:00, :15, :30 or :45).')
         return value
 
     def validate(self, attrs):
+        # Overlapping *pending* requests are allowed: the professor picks one, and accepting it declines
+        # the others. Only time that is already taken (a confirmed appointment) is refused here.
         professor = attrs.get('professor')
-        when = attrs.get('appointment_time')
-        if professor and when:
-            clash = Appointment.objects.filter(
-                professor=professor,
-                appointment_time=when,
-                status__in=['Pending', 'Confirmed'],
-            ).exists()
-            if clash:
-                raise serializers.ValidationError('That slot is already booked. Pick another time.')
+        start = attrs.get('appointment_time')
+        if professor and start:
+            end = start + attrs.get('slots', 1) * SLOT_LENGTH
+            if Appointment.overlapping(professor, start, end).filter(status='Confirmed').exists():
+                raise serializers.ValidationError('That time is already booked. Pick another slot.')
         return attrs
 
 
@@ -100,6 +111,10 @@ class AppointmentStatusSerializer(serializers.ModelSerializer):
             allowed = set()
         if value not in allowed:
             raise serializers.ValidationError(f'You cannot set this appointment to {value}.')
+        if value == 'Confirmed':
+            taken = Appointment.overlapping(appt.professor, appt.appointment_time, appt.end_time)
+            if taken.filter(status='Confirmed').exclude(pk=appt.pk).exists():
+                raise serializers.ValidationError('This overlaps another confirmed appointment.')
         return value
 
 

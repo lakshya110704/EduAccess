@@ -1,15 +1,16 @@
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
-from django.db import transaction
+from django.db import IntegrityError, transaction
 from django.db.models import Q
 from django.shortcuts import get_object_or_404, redirect, render
+from django.utils import timezone
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.http import require_POST
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, generics, mixins, viewsets
 from rest_framework.decorators import action
-from rest_framework.exceptions import PermissionDenied
+from rest_framework.exceptions import PermissionDenied, ValidationError
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
@@ -27,6 +28,11 @@ from .serializers import (
 
 def _name(user):
     return user.get_full_name() or user.username
+
+
+def _when(appt):
+    start, end = timezone.localtime(appt.appointment_time), timezone.localtime(appt.end_time)
+    return f'{start:%d %b %Y, %H:%M}–{end:%H:%M}'
 
 
 class AppointmentViewSet(
@@ -69,20 +75,36 @@ class AppointmentViewSet(
         appt = serializer.save(student=user)
         Notification.objects.create(
             user=appt.professor,
-            message=f'New appointment request from {_name(user)} for {appt.appointment_time:%d %b %Y, %H:%M}.',
+            message=f'New appointment request from {_name(user)} for {_when(appt)}.',
         )
 
-    @transaction.atomic
     def perform_update(self, serializer):
-        appt = serializer.save()
         actor = self.request.user
-        recipient = appt.professor if actor == appt.student else appt.student
-        Notification.objects.create(
-            user=recipient,
-            message=(
-                f'Your appointment with {_name(actor)} on {appt.appointment_time:%d %b %Y, %H:%M} is now {appt.status}.'
-            ),
-        )
+        try:
+            with transaction.atomic():
+                appt = serializer.save()
+                if appt.status == 'Confirmed':
+                    self._decline_overlapping_requests(appt)
+                recipient = appt.professor if actor == appt.student else appt.student
+                Notification.objects.create(
+                    user=recipient,
+                    message=f'Your appointment with {_name(actor)} on {_when(appt)} is now {appt.status}.',
+                )
+        except IntegrityError as exc:
+            # The Postgres exclusion constraint refused a second overlapping confirmation, e.g. two
+            # near-simultaneous "Confirm" clicks that both passed the serializer check.
+            raise ValidationError({'status': ['This overlaps another confirmed appointment.']}) from exc
+
+    @staticmethod
+    def _decline_overlapping_requests(appt):
+        others = Appointment.overlapping(appt.professor, appt.appointment_time, appt.end_time).filter(status='Pending')
+        for other in others.exclude(pk=appt.pk).select_related('student'):
+            other.status = 'Cancelled'
+            other.save(update_fields=['status'])
+            Notification.objects.create(
+                user=other.student,
+                message=f'The slot {_when(other)} with {_name(appt.professor)} was taken. Please pick another slot.',
+            )
 
     def update(self, request, *args, **kwargs):
         kwargs['partial'] = True

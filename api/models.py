@@ -1,3 +1,5 @@
+from datetime import timedelta
+
 from django.contrib.auth.models import AbstractUser, Group, Permission
 from django.db import models
 from django.db.models import Q
@@ -9,6 +11,10 @@ USER_ROLES = (
     ('professor', 'Professor'),
     ('admin', 'Admin'),
 )
+
+# Appointments are booked in 15-minute slots; a request covers one or two consecutive slots.
+SLOT_LENGTH = timedelta(minutes=15)
+SLOT_CHOICES = ((1, '15 minutes'), (2, '30 minutes (2 slots)'))
 
 # Availability options
 AVAILABILITY_CHOICES = (
@@ -69,10 +75,23 @@ class Appointment(models.Model):
     student = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='appointments_made')
     professor = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='appointments_received')
     appointment_time = models.DateTimeField()
+    slots = models.PositiveSmallIntegerField(choices=SLOT_CHOICES, default=1)
+    # Stored (not computed in SQL) so the Postgres exclusion constraint can index tstzrange(start, end):
+    # "start + interval" isn't IMMUTABLE in Postgres and can't be used in a constraint.
+    end_time = models.DateTimeField(editable=False)
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Pending')
 
     def __str__(self):
         return f'{self.student.username} → {self.professor.username} @ {self.appointment_time} ({self.status})'
+
+    def save(self, *args, **kwargs):
+        self.end_time = self.appointment_time + self.slots * SLOT_LENGTH
+        super().save(*args, **kwargs)
+
+    @classmethod
+    def overlapping(cls, professor, start, end):
+        """Appointments of `professor` whose [start, end) range overlaps the given one."""
+        return cls.objects.filter(professor=professor, appointment_time__lt=end, end_time__gt=start)
 
 
 class MyProfessor(models.Model):
