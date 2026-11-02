@@ -2,16 +2,19 @@ from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
 from django.db import transaction
-from django.shortcuts import redirect, render
+from django.db.models import Q
+from django.shortcuts import get_object_or_404, redirect, render
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.http import require_POST
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, generics, mixins, viewsets
+from rest_framework.decorators import action
 from rest_framework.exceptions import PermissionDenied
 from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
 
 from .forms import SignupForm
-from .models import Appointment, CustomUser, Notification
+from .models import Appointment, CustomUser, MyProfessor, Notification
 from .permissions import IsAppointmentParticipant, dashboard_for, role_required
 from .serializers import (
     AppointmentSerializer,
@@ -95,15 +98,56 @@ class NotificationViewSet(viewsets.ReadOnlyModelViewSet):
         return Notification.objects.filter(user=self.request.user).order_by('-sent_at')
 
 
+SEARCH_MIN_CHARS = 2
+SEARCH_MAX_RESULTS = 20
+
+
 class ProfessorViewSet(viewsets.ReadOnlyModelViewSet):
-    """Directory of professors: availability and cabin. Searchable by name."""
+    """Professors for the student dashboard.
+
+    - `GET /api/professors/` → the requesting student's "My professors" list (what the dashboard polls).
+    - `GET /api/professors/?search=…` → search across all professors (>= 2 chars, top 20 matches).
+    - `POST` / `DELETE /api/professors/<id>/mine/` → add to / remove from "My professors" (students only).
+    """
 
     serializer_class = ProfessorSerializer
-    filter_backends = [filters.SearchFilter]
-    search_fields = ['username', 'first_name', 'last_name', 'cabin_number']
+
+    def all_professors(self):
+        return CustomUser.objects.filter(role='professor', is_active=True)
+
+    def my_ids(self):
+        return set(MyProfessor.objects.filter(student=self.request.user).values_list('professor_id', flat=True))
 
     def get_queryset(self):
-        return CustomUser.objects.filter(role='professor', is_active=True).order_by('first_name', 'username')
+        return self.all_professors().filter(followed_by_links__student=self.request.user)
+
+    def get_serializer_context(self):
+        return {**super().get_serializer_context(), 'my_ids': self.my_ids()}
+
+    def list(self, request, *args, **kwargs):
+        query = request.query_params.get('search')
+        if query is None:
+            professors = self.get_queryset().order_by('first_name', 'last_name', 'username')
+        else:
+            query = query.strip()
+            if len(query) < SEARCH_MIN_CHARS:
+                return Response({'detail': f'Type at least {SEARCH_MIN_CHARS} characters to search.'}, status=400)
+            match = Q()
+            for field in ('username', 'first_name', 'middle_name', 'last_name', 'cabin_number', 'college_id'):
+                match |= Q(**{f'{field}__icontains': query})
+            professors = self.all_professors().filter(match).order_by('first_name', 'last_name')[:SEARCH_MAX_RESULTS]
+        return Response(self.get_serializer(professors, many=True).data)
+
+    @action(detail=True, methods=['post', 'delete'], url_path='mine')
+    def mine(self, request, pk=None):
+        if request.user.role != 'student':
+            raise PermissionDenied('Only students have a "My professors" list.')
+        professor = get_object_or_404(self.all_professors(), pk=pk)
+        if request.method == 'POST':
+            MyProfessor.objects.get_or_create(student=request.user, professor=professor)
+        else:
+            MyProfessor.objects.filter(student=request.user, professor=professor).delete()
+        return Response(self.get_serializer(professor).data)
 
 
 class MeView(generics.RetrieveUpdateAPIView):

@@ -297,7 +297,9 @@ table button:hover {
 }
 
 table button.action-confirm,
-table button.action-cancel {
+table button.action-cancel,
+table button.action-add,
+table button.action-added {
   width: auto;
   font-size: 0.9rem;
   padding: 0.3rem 0.7rem;
@@ -432,3 +434,8 @@ table button.action-cancel { background: rgba(239, 83, 80, 0.7); }
   color: var(--heading);
   transition: color 0.35s ease;
 }
+
+table button.action-add { background: transparent; border: 1px solid var(--heading); color: var(--heading); }
+table button.action-added { background: transparent; color: #bbb; cursor: default; }
+table button.action-added:hover { transform: none; }
+#search-results-table { margin-top: 1rem; }

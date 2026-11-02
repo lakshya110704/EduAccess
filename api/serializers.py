@@ -5,17 +5,21 @@ from .models import Appointment, CustomUser, Notification
 
 
 class ProfessorSerializer(serializers.ModelSerializer):
-    """Public, read-only view of a professor for students."""
+    """Public, read-only view of a professor for students. `is_mine` needs `my_ids` in the context."""
 
     display_name = serializers.SerializerMethodField()
+    is_mine = serializers.SerializerMethodField()
 
     class Meta:
         model = CustomUser
-        fields = ['id', 'username', 'display_name', 'availability_status', 'cabin_number']
+        fields = ['id', 'username', 'display_name', 'availability_status', 'cabin_number', 'is_mine']
         read_only_fields = fields
 
     def get_display_name(self, obj):
         return obj.get_full_name() or obj.username
+
+    def get_is_mine(self, obj):
+        return obj.id in self.context.get('my_ids', set())
 
 
 class MeSerializer(serializers.ModelSerializer):

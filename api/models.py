@@ -75,6 +75,20 @@ class Appointment(models.Model):
         return f'{self.student.username} → {self.professor.username} @ {self.appointment_time} ({self.status})'
 
 
+class MyProfessor(models.Model):
+    """A professor a student has added to their "My professors" list."""
+
+    student = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='my_professor_links')
+    professor = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='followed_by_links')
+    added_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [models.UniqueConstraint(fields=['student', 'professor'], name='unique_my_professor')]
+
+    def __str__(self):
+        return f'{self.student.username} ☆ {self.professor.username}'
+
+
 class Notification(models.Model):
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
     message = models.TextField()

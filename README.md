@@ -12,7 +12,7 @@ EduAccess is a full-stack web platform designed to streamline faculty-student in
   - Update availability status (Free, Busy, Unavailable)  
   - View and manage appointment requests
 - 🎓 **Student Dashboard**:  
-  - Check real-time professor availability  
+  - Keep a "My professors" list (search everyone, ☆ add) with live availability  
   - Book appointments by selecting date & time  
   - Search professor cabin locations
 - 🔔 **Notifications**: Professors are notified of new requests; students are notified when a request is confirmed or cancelled.

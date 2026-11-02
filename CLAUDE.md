@@ -49,7 +49,9 @@ availability, cabin locator and appointment booking for students and professors.
 
 All endpoints need a logged-in session; writes need the `X-CSRFToken` header.
 
-- `GET /api/professors/?search=` — read-only directory (name, cabin, availability)
+- `GET /api/professors/` — the requesting student's "My professors" list (`MyProfessor` links); `?search=` searches
+  **all** professors (>= 2 chars, top 20, each with `is_mine`). `POST`/`DELETE /api/professors/<id>/mine/` adds/removes
+  (students only). Built for ~1000 professors: the dashboard only polls the student's own list.
 - `GET|PATCH /api/me/` — current user; professors PATCH `availability_status`
 - `GET|POST /api/appointments/`, `GET|PATCH /api/appointments/<id>/` — students book; only `status` is patchable after booking: professor → Confirmed/Cancelled, student → Cancelled; Cancelled is final. No PUT/DELETE. Each change notifies the other party
 - `GET /api/notifications/` — own notifications, newest first

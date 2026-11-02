@@ -137,60 +137,108 @@ async function loadAppointments() {
 
 // ---------- student ----------
 
+// A professor picked with "Book" from search who isn't in My Professors; kept in the dropdown.
+let bookedFromSearch = null;
+let lastSearch = "";
+
+function statusCell(p) {
+  return el("td", { text: p.availability_status, className: `status-${p.availability_status.toLowerCase()}` });
+}
+
+async function setMine(professor, add) {
+  await api(`/professors/${professor.id}/mine/`, { method: add ? "POST" : "DELETE" });
+  await loadProfessors();
+  if (lastSearch) await runSearch(lastSearch);
+}
+
+function fillProfessorSelect(mine) {
+  const select = document.getElementById("professor-select");
+  if (!select) return;
+  const options = [...mine];
+  if (bookedFromSearch && !options.some((p) => p.id === bookedFromSearch.id)) options.push(bookedFromSearch);
+  // Rebuild only when the set changes, so polling doesn't reset the student's selection.
+  const ids = options.map((p) => String(p.id)).join(",");
+  if (select.dataset.ids === ids) return;
+  const current = select.value;
+  select.replaceChildren(...options.map((p) => el("option", { text: p.display_name, attrs: { value: p.id } })));
+  if (options.some((p) => String(p.id) === current)) select.value = current;
+  select.dataset.ids = ids;
+}
+
 async function loadProfessors() {
   const tbody = document.getElementById("availability-table");
-  const select = document.getElementById("professor-select");
   try {
-    const profs = rows(await api("/professors/"));
+    const mine = rows(await api("/professors/"));
     if (tbody) {
-      if (!profs.length) emptyRow(tbody, 3, "No professors registered yet.");
+      if (!mine.length) emptyRow(tbody, 4, "No professors yet. Search below and tap ☆ Add to follow them.");
       else
         tbody.replaceChildren(
-          ...profs.map((p) =>
+          ...mine.map((p) =>
             el("tr", {}, [
               el("td", { text: p.display_name }),
               el("td", { text: p.cabin_number || "—" }),
-              el("td", { text: p.availability_status, className: `status-${p.availability_status.toLowerCase()}` }),
+              statusCell(p),
+              el("td", {}, [actionButton("✕ Remove", "action-cancel", () => setMine(p, false))]),
             ]),
           ),
         );
     }
-    // Rebuild the dropdown only if the set of professors changed, so polling
-    // doesn't reset the student's selection.
-    if (select) {
-      const ids = profs.map((p) => String(p.id)).join(",");
-      if (select.dataset.ids !== ids) {
-        const current = select.value;
-        select.replaceChildren(...profs.map((p) => el("option", { text: p.display_name, attrs: { value: p.id } })));
-        if (profs.some((p) => String(p.id) === current)) select.value = current;
-        select.dataset.ids = ids;
-      }
-    }
+    fillProfessorSelect(mine);
   } catch (error) {
     console.error("Failed to load professors", error);
   }
 }
 
-async function findCabin(event) {
+function bookProfessor(professor) {
+  bookedFromSearch = professor;
+  loadProfessors().then(() => {
+    document.getElementById("professor-select").value = String(professor.id);
+    document.getElementById("booking").scrollIntoView({ behavior: "smooth" });
+    document.getElementById("appointment-datetime").focus({ preventScroll: true });
+  });
+}
+
+async function runSearch(query) {
+  const table = document.getElementById("search-results-table");
+  const tbody = document.getElementById("search-results");
+  const results = rows(await api(`/professors/?search=${encodeURIComponent(query)}`));
+  lastSearch = query;
+  table.hidden = false;
+  if (!results.length) {
+    emptyRow(tbody, 4, `No professor matches "${query}".`);
+    return;
+  }
+  tbody.replaceChildren(
+    ...results.map((p) => {
+      const actions = el("td");
+      actions.appendChild(
+        p.is_mine
+          ? el("button", { text: "✓ Added", className: "action-added", attrs: { type: "button", disabled: "" } })
+          : actionButton("☆ Add", "action-add", () => setMine(p, true)),
+      );
+      actions.appendChild(actionButton("Book", "action-confirm", async () => bookProfessor(p)));
+      return el("tr", {}, [
+        el("td", { text: p.display_name }),
+        el("td", { text: p.cabin_number || "—" }),
+        statusCell(p),
+        actions,
+      ]);
+    }),
+  );
+}
+
+async function searchProfessors(event) {
   event.preventDefault();
-  const query = document.getElementById("cabin-query").value.trim();
-  const list = document.getElementById("cabin-results");
-  if (!query) return;
+  const query = document.getElementById("professor-query").value.trim();
+  showMessage("search-message", "", "success");
+  if (query.length < 2) {
+    showMessage("search-message", "Type at least 2 characters to search.", "error");
+    return;
+  }
   try {
-    const profs = rows(await api(`/professors/?search=${encodeURIComponent(query)}`));
-    if (!profs.length) {
-      list.replaceChildren(el("li", { text: `No professor matches "${query}".` }));
-      return;
-    }
-    list.replaceChildren(
-      ...profs.map((p) =>
-        el("li", {
-          text: `${p.display_name}: ${p.cabin_number ? `Cabin ${p.cabin_number}` : "cabin not set"} · ${p.availability_status}`,
-        }),
-      ),
-    );
+    await runSearch(query);
   } catch (error) {
-    list.replaceChildren(el("li", { text: error.message }));
+    showMessage("search-message", error.message, "error");
   }
 }
 
@@ -246,7 +294,7 @@ window.addEventListener("DOMContentLoaded", () => {
     const minTime = new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16);
     document.getElementById("appointment-datetime").min = minTime;
     document.getElementById("appointment-form").addEventListener("submit", submitAppointment);
-    document.getElementById("cabin-form").addEventListener("submit", findCabin);
+    document.getElementById("search-form").addEventListener("submit", searchProfessors);
   }
   if (PAGE === "professor") {
     for (const radio of document.querySelectorAll('input[name="availability-status"]')) {

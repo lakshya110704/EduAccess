@@ -4,7 +4,7 @@ from django.test import TestCase
 from django.utils import timezone
 from rest_framework.test import APIClient
 
-from .models import Appointment, CustomUser, Notification
+from .models import Appointment, CustomUser, MyProfessor, Notification
 
 
 def make_user(username, role, **extra):
@@ -34,11 +34,13 @@ class ProfessorDirectoryTests(BaseTestCase):
     def test_requires_login(self):
         self.assertEqual(self.client.get('/api/professors/').status_code, 403)
 
-    def test_lists_only_professors_with_public_fields(self):
-        resp = self.as_user(self.student).get('/api/professors/')
-        self.assertEqual(resp.status_code, 200)
-        usernames = {p['username'] for p in resp.json()}
-        self.assertEqual(usernames, {'prof', 'prof2'})
+    def test_list_is_my_professors_with_public_fields(self):
+        client = self.as_user(self.student)
+        self.assertEqual(client.get('/api/professors/').json(), [])
+        client.post(f'/api/professors/{self.prof.id}/mine/')
+        resp = client.get('/api/professors/')
+        self.assertEqual([p['username'] for p in resp.json()], ['prof'])
+        self.assertTrue(resp.json()[0]['is_mine'])
         self.assertNotIn('email', resp.json()[0])
 
     def test_search_by_name_returns_cabin(self):
@@ -430,3 +432,52 @@ class ThemeAndSwitchTests(BaseTestCase):
         self.assertContains(self.client.get('/student/'), 'data-theme="student"')
         self.client.force_login(self.prof)
         self.assertContains(self.client.get('/professor/'), 'data-theme="professor"')
+
+
+class MyProfessorTests(BaseTestCase):
+    def test_add_and_remove(self):
+        client = self.as_user(self.student)
+        self.assertEqual(client.post(f'/api/professors/{self.prof.id}/mine/').status_code, 200)
+        client.post(f'/api/professors/{self.prof.id}/mine/')  # adding twice is harmless
+        self.assertEqual(MyProfessor.objects.filter(student=self.student).count(), 1)
+        self.assertEqual(client.delete(f'/api/professors/{self.prof.id}/mine/').status_code, 200)
+        self.assertEqual(client.get('/api/professors/').json(), [])
+
+    def test_lists_are_per_student(self):
+        self.as_user(self.student).post(f'/api/professors/{self.prof.id}/mine/')
+        self.assertEqual(self.as_user(self.other_student).get('/api/professors/').json(), [])
+
+    def test_search_covers_everyone_and_flags_mine(self):
+        client = self.as_user(self.student)
+        client.post(f'/api/professors/{self.prof.id}/mine/')
+        results = {p['username']: p['is_mine'] for p in client.get('/api/professors/?search=prof').json()}
+        self.assertEqual(results, {'prof': True, 'prof2': False})
+
+    def test_search_never_returns_students(self):
+        results = self.as_user(self.student).get('/api/professors/?search=stu').json()
+        self.assertEqual(results, [])
+
+    def test_search_needs_two_characters(self):
+        resp = self.as_user(self.student).get('/api/professors/?search=a')
+        self.assertEqual(resp.status_code, 400)
+
+    def test_search_is_capped(self):
+        for i in range(25):
+            make_user(f'bulkprof{i}', 'professor')
+        self.assertEqual(len(self.as_user(self.student).get('/api/professors/?search=bulkprof').json()), 20)
+
+    def test_only_students_can_follow(self):
+        resp = self.as_user(self.prof).post(f'/api/professors/{self.other_prof.id}/mine/')
+        self.assertEqual(resp.status_code, 403)
+
+    def test_cannot_follow_a_student(self):
+        resp = self.as_user(self.student).post(f'/api/professors/{self.other_student.id}/mine/')
+        self.assertEqual(resp.status_code, 404)
+
+    def test_can_book_a_professor_not_in_my_list(self):
+        resp = self.as_user(self.student).post(
+            '/api/appointments/',
+            {'professor': self.other_prof.id, 'appointment_time': self.future.isoformat()},
+            format='json',
+        )
+        self.assertEqual(resp.status_code, 201, resp.content)

@@ -18,8 +18,8 @@
     <h2><i class="fas fa-user-graduate"></i> Welcome, {{ request.user.get_full_name|default:request.user.username }}</h2>
     <div class="header-right">
       <nav>
-        <a href="#availability"><i class="fas fa-signal"></i> Availability</a>
-        <a href="#locator"><i class="fas fa-map-marker-alt"></i> Locator</a>
+        <a href="#availability"><i class="fas fa-star"></i> My Professors</a>
+        <a href="#find"><i class="fas fa-search"></i> Find</a>
         <a href="#booking"><i class="fas fa-calendar-plus"></i> Appointment</a>
         <a href="#notifications"><i class="fas fa-bell"></i> Notifications</a>
       </nav>
@@ -33,20 +33,24 @@
   <main class="dashboard">
 
     <section id="availability">
-      <h3><i class="fas fa-signal"></i> Professor Availability</h3>
+      <h3><i class="fas fa-star"></i> My Professors</h3>
       <table>
-        <thead><tr><th>Professor</th><th>Cabin</th><th>Status</th></tr></thead>
+        <thead><tr><th>Professor</th><th>Cabin</th><th>Status</th><th></th></tr></thead>
         <tbody id="availability-table"></tbody>
       </table>
     </section>
 
-    <section id="locator">
-      <h3><i class="fas fa-map-marker-alt"></i> Cabin Locator</h3>
-      <form id="cabin-form">
-        <input type="search" id="cabin-query" placeholder="Enter professor name" required>
-        <button type="submit"><i class="fas fa-search-location"></i> Find Cabin</button>
+    <section id="find">
+      <h3><i class="fas fa-search"></i> Find a Professor</h3>
+      <form id="search-form">
+        <input type="search" id="professor-query" placeholder="Name, cabin or employee ID" minlength="2" required>
+        <button type="submit"><i class="fas fa-search"></i> Search</button>
       </form>
-      <ul id="cabin-results"></ul>
+      <div id="search-message" class="flash form-message" role="status"></div>
+      <table id="search-results-table" hidden>
+        <thead><tr><th>Professor</th><th>Cabin</th><th>Status</th><th>Actions</th></tr></thead>
+        <tbody id="search-results"></tbody>
+      </table>
     </section>
 
     <section id="booking">
