@@ -706,6 +706,9 @@ class DirectionsTests(BaseTestCase):
         self.assertContains(resp, 'Take the right staircase.<br>FB3 is the left wing.')
         self.assertContains(resp, 'https://wa.me/?text=')
 
+    def test_back_link_falls_back_to_home(self):
+        self.assertContains(self.client.get('/go/AB2/FB3/106/'), 'class="go-back" href="/" data-go-back')
+
     def test_page_needs_no_login_and_shows_no_names(self):
         resp = self.client.get('/go/AB2/FB3/106/')  # anonymous
         self.assertEqual(resp.status_code, 200)

@@ -158,7 +158,7 @@ function directionsLink(p) {
   return el("a", {
     text: "📍 Directions",
     className: "action-directions",
-    attrs: { href: p.directions_url, target: "_blank", rel: "noopener" },
+    attrs: { href: p.directions_url },
   });
 }
 
