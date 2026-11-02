@@ -1,7 +1,7 @@
 from django.utils import timezone
 from rest_framework import serializers
 
-from .models import SLOT_LENGTH, Appointment, CustomUser, Notification
+from .models import SLOT_LENGTH, Appointment, CustomUser, Notification, OpenTime
 
 
 class ProfessorSerializer(serializers.ModelSerializer):
@@ -9,11 +9,16 @@ class ProfessorSerializer(serializers.ModelSerializer):
 
     display_name = serializers.SerializerMethodField()
     is_mine = serializers.SerializerMethodField()
+    open_today = serializers.SerializerMethodField()
 
     class Meta:
         model = CustomUser
-        fields = ['id', 'username', 'display_name', 'availability_status', 'cabin_number', 'is_mine']
+        fields = ['id', 'username', 'display_name', 'availability_status', 'cabin_number', 'is_mine', 'open_today']
         read_only_fields = fields
+
+    def get_open_today(self, obj):
+        windows = OpenTime.objects.filter(professor=obj, start__date=timezone.localdate()).order_by('start')
+        return [{'start': w.start, 'end': w.end} for w in windows]
 
     def get_display_name(self, obj):
         return obj.get_full_name() or obj.username
@@ -88,6 +93,37 @@ class AppointmentSerializer(serializers.ModelSerializer):
             end = start + attrs.get('slots', 1) * SLOT_LENGTH
             if Appointment.overlapping(professor, start, end).filter(status='Confirmed').exists():
                 raise serializers.ValidationError('That time is already booked. Pick another slot.')
+            if OpenTime.overlapping(professor, start, end).exists():
+                raise serializers.ValidationError('That is open (walk-in) time: no appointment needed, just drop by.')
+        return attrs
+
+
+def _check_quarter_hour(value, label):
+    local = timezone.localtime(value)
+    if local.minute % 15 or local.second or local.microsecond:
+        raise serializers.ValidationError(f'{label} must be on the quarter hour (:00, :15, :30 or :45).')
+
+
+class OpenTimeSerializer(serializers.ModelSerializer):
+    """A professor's walk-in window for today. Can't overlap their confirmed appointments."""
+
+    class Meta:
+        model = OpenTime
+        fields = ['id', 'start', 'end']
+
+    def validate(self, attrs):
+        start, end = attrs['start'], attrs['end']
+        _check_quarter_hour(start, 'Start')
+        _check_quarter_hour(end, 'End')
+        if end <= start:
+            raise serializers.ValidationError('End must be after start.')
+        if timezone.localdate(start) != timezone.localdate() or timezone.localdate(end) != timezone.localdate():
+            raise serializers.ValidationError('Open time is set for today only.')
+        professor = self.context['request'].user
+        if OpenTime.overlapping(professor, start, end).exists():
+            raise serializers.ValidationError('This overlaps open time you already set.')
+        if Appointment.overlapping(professor, start, end).filter(status='Confirmed').exists():
+            raise serializers.ValidationError('You have a confirmed appointment in that time.')
         return attrs
 
 

@@ -143,6 +143,13 @@ async function loadAppointments() {
 let bookedFromSearch = null;
 let lastSearch = "";
 
+const formatClock = (iso) => new Date(iso).toLocaleTimeString([], { timeStyle: "short" });
+
+function openTimeCell(p) {
+  const windows = (p.open_today || []).map((w) => `${formatClock(w.start)}–${formatClock(w.end)}`);
+  return el("td", { text: windows.length ? `${windows.join(", ")} (walk-in)` : "—", className: "open-time" });
+}
+
 function statusCell(p) {
   return el("td", { text: p.availability_status, className: `status-${p.availability_status.toLowerCase()}` });
 }
@@ -172,7 +179,7 @@ async function loadProfessors() {
   try {
     const mine = rows(await api("/professors/"));
     if (tbody) {
-      if (!mine.length) emptyRow(tbody, 4, "No professors yet. Search below and tap ☆ Add to follow them.");
+      if (!mine.length) emptyRow(tbody, 5, "No professors yet. Search below and tap ☆ Add to follow them.");
       else
         tbody.replaceChildren(
           ...mine.map((p) =>
@@ -180,6 +187,7 @@ async function loadProfessors() {
               el("td", { text: p.display_name }),
               el("td", { text: p.cabin_number || "—" }),
               statusCell(p),
+              openTimeCell(p),
               el("td", {}, [actionButton("✕ Remove", "action-cancel", () => setMine(p, false))]),
             ]),
           ),
@@ -286,6 +294,55 @@ async function updateAvailability(event) {
   }
 }
 
+async function loadOpenTimes() {
+  const tbody = document.getElementById("open-time-table");
+  if (!tbody) return;
+  try {
+    const windows = rows(await api("/open-times/"));
+    if (!windows.length) {
+      emptyRow(tbody, 2, "No open time set for today.");
+      return;
+    }
+    tbody.replaceChildren(
+      ...windows.map((w) =>
+        el("tr", {}, [
+          el("td", { text: `${formatClock(w.start)}–${formatClock(w.end)}` }),
+          el("td", {}, [
+            actionButton("✕ Remove", "action-cancel", async () => {
+              await api(`/open-times/${w.id}/`, { method: "DELETE" });
+              await loadOpenTimes();
+            }),
+          ]),
+        ]),
+      ),
+    );
+  } catch (error) {
+    console.error("Failed to load open time", error);
+  }
+}
+
+// "HH:MM" today, in local time, as an ISO timestamp.
+function todayAt(hhmm) {
+  const [h, m] = hhmm.split(":").map(Number);
+  const d = new Date();
+  d.setHours(h, m, 0, 0);
+  return d.toISOString();
+}
+
+async function addOpenTime(event) {
+  event.preventDefault();
+  const start = document.getElementById("open-start").value;
+  const end = document.getElementById("open-end").value;
+  try {
+    await api("/open-times/", { method: "POST", body: { start: todayAt(start), end: todayAt(end) } });
+    showMessage("open-time-message", `Open time ${start}–${end} added. Students can see it now.`);
+    event.target.reset();
+    await Promise.all([loadOpenTimes(), loadAppointments()]);
+  } catch (error) {
+    showMessage("open-time-message", error.message, "error");
+  }
+}
+
 // ---------- init ----------
 
 function refresh() {
@@ -293,6 +350,7 @@ function refresh() {
   loadNotifications();
   loadAppointments();
   if (PAGE === "student") loadProfessors();
+  if (PAGE === "professor") loadOpenTimes();
 }
 
 window.addEventListener("DOMContentLoaded", () => {
@@ -306,6 +364,7 @@ window.addEventListener("DOMContentLoaded", () => {
     document.getElementById("search-form").addEventListener("submit", searchProfessors);
   }
   if (PAGE === "professor") {
+    document.getElementById("open-time-form").addEventListener("submit", addOpenTime);
     for (const radio of document.querySelectorAll('input[name="availability-status"]')) {
       radio.addEventListener("change", updateAvailability);
     }

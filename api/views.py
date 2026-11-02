@@ -15,13 +15,14 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from .forms import SignupForm
-from .models import Appointment, CustomUser, MyProfessor, Notification
+from .models import Appointment, CustomUser, MyProfessor, Notification, OpenTime
 from .permissions import IsAppointmentParticipant, dashboard_for, role_required
 from .serializers import (
     AppointmentSerializer,
     AppointmentStatusSerializer,
     MeSerializer,
     NotificationSerializer,
+    OpenTimeSerializer,
     ProfessorSerializer,
 )
 
@@ -111,6 +112,42 @@ class AppointmentViewSet(
         response = super().update(request, *args, **kwargs)
         response.data = AppointmentSerializer(self.get_object(), context=self.get_serializer_context()).data
         return response
+
+
+class OpenTimeViewSet(
+    mixins.CreateModelMixin,
+    mixins.ListModelMixin,
+    mixins.DestroyModelMixin,
+    viewsets.GenericViewSet,
+):
+    """A professor's walk-in windows for today. Students see them via `open_today` on /api/professors/."""
+
+    serializer_class = OpenTimeSerializer
+
+    def check_permissions(self, request):
+        super().check_permissions(request)
+        if request.user.role != 'professor':
+            raise PermissionDenied('Only professors set open time.')
+
+    def get_queryset(self):
+        return OpenTime.objects.filter(professor=self.request.user, start__date=timezone.localdate())
+
+    @transaction.atomic
+    def perform_create(self, serializer):
+        window = serializer.save(professor=self.request.user)
+        # No appointments inside walk-in time: pending requests it covers are declined.
+        covered = Appointment.overlapping(window.professor, window.start, window.end).filter(status='Pending')
+        for appt in covered.select_related('student'):
+            appt.status = 'Cancelled'
+            appt.save(update_fields=['status'])
+            start, end = timezone.localtime(window.start), timezone.localtime(window.end)
+            Notification.objects.create(
+                user=appt.student,
+                message=(
+                    f'{_name(window.professor)} is in their cabin for walk-ins {start:%H:%M}–{end:%H:%M}, '
+                    f'so your request for {_when(appt)} was declined. Just drop by, or pick another slot.'
+                ),
+            )
 
 
 class NotificationViewSet(viewsets.ReadOnlyModelViewSet):

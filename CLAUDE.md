@@ -59,6 +59,10 @@ All endpoints need a logged-in session; writes need the `X-CSRFToken` header.
   pending ones. Postgres enforces "no overlapping confirmed appointments per professor" with an exclusion
   constraint (`appointment_no_confirmed_overlap`, migration 0007, needs `btree_gist`; skipped on SQLite) — a racing
   second confirmation raises IntegrityError, returned as a 400.
+- Open time (walk-in): `OpenTime` (professor, start, end; quarter hours, today only, no overlapping windows).
+  `/api/open-times/` — professors list/create/delete their own windows for today. Creating one is refused if it
+  covers a confirmed appointment; pending requests it covers are declined with a notification. Bookings inside
+  open time are refused. Students see windows as `open_today` on `/api/professors/` ("Open time today" column).
 - `GET|POST /api/appointments/`, `GET|PATCH /api/appointments/<id>/` — students book; only `status` is patchable after booking: professor → Confirmed/Cancelled, student → Cancelled; Cancelled is final. No PUT/DELETE. Each change notifies the other party
 - `GET /api/notifications/` — own notifications, newest first
 

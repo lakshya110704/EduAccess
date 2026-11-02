@@ -94,6 +94,28 @@ class Appointment(models.Model):
         return cls.objects.filter(professor=professor, appointment_time__lt=end, end_time__gt=start)
 
 
+class OpenTime(models.Model):
+    """A window when a professor is in their cabin and anyone may walk in. No appointments inside it."""
+
+    professor = models.ForeignKey(CustomUser, on_delete=models.CASCADE, related_name='open_times')
+    start = models.DateTimeField()
+    end = models.DateTimeField()
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['start']
+        constraints = [
+            models.CheckConstraint(condition=models.Q(end__gt=models.F('start')), name='open_time_end_after_start')
+        ]
+
+    def __str__(self):
+        return f'{self.professor.username} open {self.start:%Y-%m-%d %H:%M}–{self.end:%H:%M}'
+
+    @classmethod
+    def overlapping(cls, professor, start, end):
+        return cls.objects.filter(professor=professor, start__lt=end, end__gt=start)
+
+
 class MyProfessor(models.Model):
     """A professor a student has added to their "My professors" list."""
 

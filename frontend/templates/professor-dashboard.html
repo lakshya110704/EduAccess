@@ -19,6 +19,7 @@
     <div class="header-right">
       <nav>
         <a href="#availability"><i class="fas fa-toggle-on"></i> Availability</a>
+        <a href="#open-time"><i class="fas fa-door-open"></i> Open Time</a>
         <a href="#appointments"><i class="fas fa-calendar-alt"></i> Appointments</a>
         <a href="#notifications"><i class="fas fa-bell"></i> Notifications</a>
       </nav>
@@ -40,6 +41,21 @@
         <label><input type="radio" name="availability-status" value="Unavailable" {% if request.user.availability_status == "Unavailable" %}checked{% endif %}> Unavailable</label>
       </div>
       <div id="availability-message" class="flash form-message" role="status"></div>
+    </section>
+
+    <section id="open-time">
+      <h3><i class="fas fa-door-open"></i> Open Time Today</h3>
+      <p>When you're in your cabin and anyone can walk in. Students see it right away; no appointments can be booked inside it.</p>
+      <form id="open-time-form">
+        <label>From: <input type="time" id="open-start" step="900" required></label>
+        <label>To: <input type="time" id="open-end" step="900" required></label>
+        <button type="submit"><i class="fas fa-plus"></i> Add open time</button>
+        <div id="open-time-message" class="flash form-message" role="status"></div>
+      </form>
+      <table>
+        <thead><tr><th>Walk-in window</th><th>Action</th></tr></thead>
+        <tbody id="open-time-table"></tbody>
+      </table>
     </section>
 
     <section id="appointments">

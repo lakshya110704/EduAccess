@@ -549,3 +549,69 @@ class BookingRuleTests(BaseTestCase):
         self.book(status='Confirmed')
         with self.assertRaises(IntegrityError), transaction.atomic():
             self.book(student=self.other_student, when=self.future + timedelta(minutes=10), status='Confirmed')
+
+
+class OpenTimeTests(BaseTestCase):
+    def setUp(self):
+        super().setUp()
+        # A window later today, on quarter hours, in local time. Fall back to the last full hour before
+        # midnight if "later today" would spill into tomorrow.
+        now = timezone.localtime().replace(second=0, microsecond=0)
+        base = now.replace(minute=0) + timedelta(hours=1)
+        if base.date() != now.date() or base.hour > 21:
+            base = now.replace(hour=22, minute=0)
+        self.open_start, self.open_end = base, base + timedelta(hours=1)
+
+    def add(self, start=None, end=None, user=None):
+        return self.as_user(user or self.prof).post(
+            '/api/open-times/',
+            {'start': (start or self.open_start).isoformat(), 'end': (end or self.open_end).isoformat()},
+            format='json',
+        )
+
+    def test_professor_sets_open_time_and_students_see_it(self):
+        self.assertEqual(self.add().status_code, 201)
+        client = self.as_user(self.student)
+        client.post(f'/api/professors/{self.prof.id}/mine/')
+        open_today = client.get('/api/professors/').json()[0]['open_today']
+        self.assertEqual(len(open_today), 1)
+
+    def test_only_professors_can_set_open_time(self):
+        self.assertEqual(self.add(user=self.student).status_code, 403)
+
+    def test_must_be_today_on_quarter_hours(self):
+        self.assertEqual(self.add(start=self.open_start + timedelta(minutes=5)).status_code, 400)
+        tomorrow = self.open_start + timedelta(days=1)
+        self.assertEqual(self.add(start=tomorrow, end=tomorrow + timedelta(hours=1)).status_code, 400)
+        self.assertEqual(self.add(end=self.open_start).status_code, 400)
+
+    def test_no_overlapping_windows(self):
+        self.add()
+        resp = self.add(start=self.open_start + timedelta(minutes=30), end=self.open_end + timedelta(minutes=30))
+        self.assertContains(resp, 'overlaps open time', status_code=400)
+
+    def test_cannot_cover_a_confirmed_appointment(self):
+        self.book(when=self.open_start, status='Confirmed')
+        self.assertContains(self.add(), 'confirmed appointment in that time', status_code=400)
+
+    def test_open_time_declines_covered_pending_requests(self):
+        covered = self.book(when=self.open_start)
+        self.assertEqual(self.add().status_code, 201)
+        covered.refresh_from_db()
+        self.assertEqual(covered.status, 'Cancelled')
+        self.assertIn('walk-ins', Notification.objects.get(user=self.student).message)
+
+    def test_no_bookings_inside_open_time(self):
+        self.add()
+        resp = self.as_user(self.student).post(
+            '/api/appointments/',
+            {'professor': self.prof.id, 'appointment_time': self.open_start.isoformat()},
+            format='json',
+        )
+        self.assertContains(resp, 'open (walk-in) time', status_code=400)
+
+    def test_professor_lists_and_removes_own_windows(self):
+        window_id = self.add().json()['id']
+        self.assertEqual(len(self.as_user(self.prof).get('/api/open-times/').json()), 1)
+        self.assertEqual(self.as_user(self.other_prof).delete(f'/api/open-times/{window_id}/').status_code, 404)
+        self.assertEqual(self.as_user(self.prof).delete(f'/api/open-times/{window_id}/').status_code, 204)

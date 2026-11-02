@@ -42,21 +42,21 @@
     "semantic_hash": "d41d8cd98f00b204e9800998ecf8427e"
   },
   "api/models.py": {
-    "mtime": 1793628942.392779,
-    "seen": 1793630965.5837371,
-    "ast_hash": "1ee56cf8e5b27b3633f92cbe5457a6c4",
+    "mtime": 1793631052.2529485,
+    "seen": 1793631256.685088,
+    "ast_hash": "885ccfb2507a43a2c53b62f32e30bf2c",
     "semantic_hash": ""
   },
   "api/serializers.py": {
-    "mtime": 1793628942.3938453,
-    "seen": 1793630965.58374,
-    "ast_hash": "787d28262a1654e983cacb58d770b881",
+    "mtime": 1793631039.9578416,
+    "seen": 1793631256.68509,
+    "ast_hash": "419abba5bff4ef8dfa8c9e68099d335f",
     "semantic_hash": ""
   },
   "api/tests.py": {
-    "mtime": 1793630789.338415,
-    "seen": 1793630965.583741,
-    "ast_hash": "725451205b7e7c813db6d8b66780e43b",
+    "mtime": 1793631082.211322,
+    "seen": 1793631256.685091,
+    "ast_hash": "be4ce3421cf50185f2b3669dd1776b9f",
     "semantic_hash": ""
   },
   "api/urls.py": {
@@ -66,9 +66,9 @@
     "semantic_hash": ""
   },
   "api/views.py": {
-    "mtime": 1793629014.8892694,
-    "seen": 1793630965.583744,
-    "ast_hash": "f237fe333c9bf858d87138db1755ce62",
+    "mtime": 1793631052.1789408,
+    "seen": 1793631256.6850939,
+    "ast_hash": "fa2338645009efb80ef696628d55b482",
     "semantic_hash": ""
   },
   "eduaccess_backend/__init__.py": {
@@ -102,9 +102,9 @@
     "semantic_hash": "f932e5c6e833b9c4e996281520c715f5"
   },
   "frontend/static/script.js": {
-    "mtime": 1793629058.8297641,
-    "seen": 1793630965.583756,
-    "ast_hash": "30f40c6c5ad4fc73f0b1afcd783752b9",
+    "mtime": 1793631184.1648915,
+    "seen": 1793631256.685107,
+    "ast_hash": "d45cb18b0b4e65a457374e5df6927bb7",
     "semantic_hash": ""
   },
   "manage.py": {
@@ -132,9 +132,9 @@
     "semantic_hash": ""
   },
   "frontend/templates/student-dashboard.html": {
-    "mtime": 1793629057.2410922,
-    "seen": 1793630965.583779,
-    "ast_hash": "fb2b04da380ea7ab92b67902ed278a24",
+    "mtime": 1793631184.1641781,
+    "seen": 1793631256.685129,
+    "ast_hash": "373492c92d7b2550f38e98a6f45be099",
     "semantic_hash": ""
   },
   "requirements.txt": {
@@ -198,9 +198,9 @@
     "semantic_hash": ""
   },
   "CLAUDE.md": {
-    "mtime": 1793630963.492748,
-    "seen": 1793630965.583764,
-    "ast_hash": "f3ecb5ffaf831cf9e715cc0386d66c02",
+    "mtime": 1793631254.7387226,
+    "seen": 1793631256.6851149,
+    "ast_hash": "dae9499b860561bb455a0671d5e024a7",
     "semantic_hash": ""
   },
   ".github/workflows/ci.yml": {
@@ -321,6 +321,12 @@
     "mtime": 1793629014.9070616,
     "seen": 1793630965.583734,
     "ast_hash": "1094e502e986ae9414bbc8f97a3c178d",
+    "semantic_hash": ""
+  },
+  "api/migrations/0007_appointment_slots.py": {
+    "mtime": 1793631015.8589609,
+    "seen": 1793631256.6850848,
+    "ast_hash": "ad3370edbefd8526ddd6a2ff56bb4e9a",
     "semantic_hash": ""
   }
 }
