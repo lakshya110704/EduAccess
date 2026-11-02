@@ -14,15 +14,13 @@
   <div class="background-blur"></div>
 
   <header class="dashboard-header">
-    <img src="{% static 'assets/logo.png' %}" class="nav-logo" alt="EduAccess Logo">
-    <h2><i class="fas fa-user-graduate"></i> Welcome, {{ request.user.get_full_name|default:request.user.username }}</h2>
+    <div class="header-left">
+      <img src="{% static 'assets/logo.png' %}" class="nav-logo" alt="EduAccess Logo">
+      <h2><i class="fas fa-user-graduate"></i> Welcome, {{ request.user.get_full_name|default:request.user.username }}</h2>
+    </div>
     <div class="header-right">
-      <nav>
-        <a href="#availability"><i class="fas fa-star"></i> My Professors</a>
-        <a href="#find"><i class="fas fa-search"></i> Find</a>
-        <a href="#booking"><i class="fas fa-calendar-plus"></i> Appointment</a>
-        <a href="#notifications"><i class="fas fa-bell"></i> Notifications</a>
-      </nav>
+      <button type="button" class="header-btn" data-open-dialog="find-dialog"><i class="fas fa-search"></i> Find a professor</button>
+      <button type="button" class="header-btn" data-open-dialog="book-dialog"><i class="fas fa-calendar-plus"></i> Book appointment</button>
       <form method="post" action="{% url 'logout' %}" class="logout-form">
         {% csrf_token %}
         <button type="submit"><i class="fas fa-sign-out-alt"></i> Log out</button>
@@ -33,44 +31,14 @@
   <main class="dashboard">
 
     <section id="availability">
-      <h3><i class="fas fa-star"></i> My Professors</h3>
+      <div class="section-head">
+        <h3><i class="fas fa-star"></i> My Professors</h3>
+        <button type="button" class="section-btn" data-open-dialog="find-dialog"><i class="fas fa-plus"></i> Add</button>
+      </div>
       <table>
         <thead><tr><th>Professor</th><th>Cabin</th><th>Status</th><th>Open time today</th><th></th></tr></thead>
         <tbody id="availability-table"></tbody>
       </table>
-    </section>
-
-    <section id="find">
-      <h3><i class="fas fa-search"></i> Find a Professor</h3>
-      <form id="search-form">
-        <input type="search" id="professor-query" placeholder="Name, cabin or employee ID" minlength="2" required>
-        <button type="submit"><i class="fas fa-search"></i> Search</button>
-      </form>
-      <div id="search-message" class="flash form-message" role="status"></div>
-      <table id="search-results-table" hidden>
-        <thead><tr><th>Professor</th><th>Cabin</th><th>Status</th><th>Actions</th></tr></thead>
-        <tbody id="search-results"></tbody>
-      </table>
-    </section>
-
-    <section id="booking">
-      <h3><i class="fas fa-calendar-check"></i> Book Appointment</h3>
-      <form id="appointment-form">
-        <label>Professor:
-          <select id="professor-select" required></select>
-        </label>
-        <label>Start time:
-          <input type="datetime-local" id="appointment-datetime" step="900" required>
-        </label>
-        <label>Length:
-          <select id="appointment-slots">
-            <option value="1">15 minutes</option>
-            <option value="2">30 minutes (2 slots)</option>
-          </select>
-        </label>
-        <button type="submit"><i class="fas fa-check-circle"></i> Submit</button>
-        <div id="appointment-message" class="flash form-message" role="status"></div>
-      </form>
     </section>
 
     <section id="my-appointments">
@@ -87,5 +55,44 @@
     </section>
 
   </main>
+
+  <dialog id="find-dialog" class="panel" aria-labelledby="find-title">
+    <div class="panel-head">
+      <h3 id="find-title"><i class="fas fa-search"></i> Find a Professor</h3>
+      <button type="button" class="panel-close" data-close-dialog aria-label="Close">✕</button>
+    </div>
+    <form id="search-form">
+      <input type="search" id="professor-query" placeholder="Name, cabin or employee ID" minlength="2" required>
+      <button type="submit"><i class="fas fa-search"></i> Search</button>
+    </form>
+    <div id="search-message" class="flash form-message" role="status"></div>
+    <table id="search-results-table" hidden>
+      <thead><tr><th>Professor</th><th>Cabin</th><th>Status</th><th>Actions</th></tr></thead>
+      <tbody id="search-results"></tbody>
+    </table>
+  </dialog>
+
+  <dialog id="book-dialog" class="panel" aria-labelledby="book-title">
+    <div class="panel-head">
+      <h3 id="book-title"><i class="fas fa-calendar-check"></i> Book Appointment</h3>
+      <button type="button" class="panel-close" data-close-dialog aria-label="Close">✕</button>
+    </div>
+    <form id="appointment-form">
+      <label>Professor:
+        <select id="professor-select" required></select>
+      </label>
+      <label>Start time:
+        <input type="datetime-local" id="appointment-datetime" step="900" required>
+      </label>
+      <label>Length:
+        <select id="appointment-slots">
+          <option value="1">15 minutes</option>
+          <option value="2">30 minutes (2 slots)</option>
+        </select>
+      </label>
+      <button type="submit"><i class="fas fa-check-circle"></i> Request appointment</button>
+      <div id="appointment-message" class="flash form-message" role="status"></div>
+    </form>
+  </dialog>
 </body>
 </html>

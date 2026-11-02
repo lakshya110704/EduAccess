@@ -14,52 +14,32 @@
   <div class="background-blur"></div>
 
   <header class="dashboard-header">
-    <img src="{% static 'assets/logo.png' %}" class="nav-logo" alt="EduAccess Logo">
-    <h2><i class="fas fa-chalkboard-teacher"></i> Welcome, {{ request.user.get_full_name|default:request.user.username }}</h2>
+    <div class="header-left">
+      <img src="{% static 'assets/logo.png' %}" class="nav-logo" alt="EduAccess Logo">
+      <h2><i class="fas fa-chalkboard-teacher"></i> Welcome, {{ request.user.get_full_name|default:request.user.username }}</h2>
+    </div>
     <div class="header-right">
-      <nav>
-        <a href="#availability"><i class="fas fa-toggle-on"></i> Availability</a>
-        <a href="#open-time"><i class="fas fa-door-open"></i> Open Time</a>
-        <a href="#appointments"><i class="fas fa-calendar-alt"></i> Appointments</a>
-        <a href="#notifications"><i class="fas fa-bell"></i> Notifications</a>
-      </nav>
+      <fieldset class="segmented status-switch" aria-label="Your status">
+        <input type="radio" name="availability-status" id="status-free" value="Free" {% if request.user.availability_status == "Free" %}checked{% endif %}>
+        <label for="status-free">Free</label>
+        <input type="radio" name="availability-status" id="status-busy" value="Busy" {% if request.user.availability_status == "Busy" %}checked{% endif %}>
+        <label for="status-busy">Busy</label>
+        <input type="radio" name="availability-status" id="status-unavailable" value="Unavailable" {% if request.user.availability_status == "Unavailable" %}checked{% endif %}>
+        <label for="status-unavailable">Unavailable</label>
+      </fieldset>
+      <button type="button" class="header-btn" data-open-dialog="open-time-dialog"><i class="fas fa-door-open"></i> Open time</button>
       <form method="post" action="{% url 'logout' %}" class="logout-form">
         {% csrf_token %}
         <button type="submit"><i class="fas fa-sign-out-alt"></i> Log out</button>
       </form>
     </div>
   </header>
+  <div id="availability-message" class="flash form-message header-toast" role="status"></div>
 
   <main class="dashboard">
 
-    <section id="availability">
-      <h3><i class="fas fa-toggle-on"></i> Update Availability</h3>
-      <p>Select your current status{% if request.user.cabin_number %} (cabin {{ request.user.cabin_number }}){% endif %}:</p>
-      <div class="radio-row">
-        <label><input type="radio" name="availability-status" value="Free" {% if request.user.availability_status == "Free" %}checked{% endif %}> Free</label>
-        <label><input type="radio" name="availability-status" value="Busy" {% if request.user.availability_status == "Busy" %}checked{% endif %}> Busy</label>
-        <label><input type="radio" name="availability-status" value="Unavailable" {% if request.user.availability_status == "Unavailable" %}checked{% endif %}> Unavailable</label>
-      </div>
-      <div id="availability-message" class="flash form-message" role="status"></div>
-    </section>
-
-    <section id="open-time">
-      <h3><i class="fas fa-door-open"></i> Open Time Today</h3>
-      <p>When you're in your cabin and anyone can walk in. Students see it right away; no appointments can be booked inside it.</p>
-      <form id="open-time-form">
-        <label>From: <input type="time" id="open-start" step="900" required></label>
-        <label>To: <input type="time" id="open-end" step="900" required></label>
-        <button type="submit"><i class="fas fa-plus"></i> Add open time</button>
-        <div id="open-time-message" class="flash form-message" role="status"></div>
-      </form>
-      <table>
-        <thead><tr><th>Walk-in window</th><th>Action</th></tr></thead>
-        <tbody id="open-time-table"></tbody>
-      </table>
-    </section>
-
     <section id="appointments">
-      <h3><i class="fas fa-calendar-alt"></i> Manage Appointments</h3>
+      <h3><i class="fas fa-calendar-alt"></i> Appointments</h3>
       <table>
         <thead><tr><th>Student</th><th>Time</th><th>Status</th><th>Action</th></tr></thead>
         <tbody id="professor-appointment-table"></tbody>
@@ -72,5 +52,23 @@
     </section>
 
   </main>
+
+  <dialog id="open-time-dialog" class="panel" aria-labelledby="open-time-title">
+    <div class="panel-head">
+      <h3 id="open-time-title"><i class="fas fa-door-open"></i> Open Time Today</h3>
+      <button type="button" class="panel-close" data-close-dialog aria-label="Close">✕</button>
+    </div>
+    <p>When you're in your cabin{% if request.user.cabin_number %} ({{ request.user.cabin_number }}){% endif %} and anyone can walk in. Students see it right away; no appointments can be booked inside it.</p>
+    <form id="open-time-form">
+      <label>From: <input type="time" id="open-start" step="900" required></label>
+      <label>To: <input type="time" id="open-end" step="900" required></label>
+      <button type="submit"><i class="fas fa-plus"></i> Add open time</button>
+      <div id="open-time-message" class="flash form-message" role="status"></div>
+    </form>
+    <table>
+      <thead><tr><th>Walk-in window</th><th>Action</th></tr></thead>
+      <tbody id="open-time-table"></tbody>
+    </table>
+  </dialog>
 </body>
 </html>

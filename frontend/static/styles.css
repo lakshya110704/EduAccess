@@ -143,9 +143,18 @@ body {
   flex-wrap: wrap;
 }
 
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+/* Sized by height so the whole "EduAccess" wordmark (650x350) stays readable. */
 .nav-logo {
-  width: 40px;
-  height: auto;
+  height: 48px;
+  width: auto;
+  border-radius: 6px;
+  margin-right: 0.75rem;
 }
 .dashboard-header h2 {
   margin: 0;

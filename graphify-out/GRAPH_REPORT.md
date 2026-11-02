@@ -1,17 +1,17 @@
 # Graph Report - EduAccess  (2026-11-02)
 
 ## Corpus Check
-- 36 files · ~296,676 words
+- 37 files · ~297,592 words
 - Verdict: corpus is large enough that graph structure adds value.
 - Unclassified: 13 file(s) not represented in the graph (top: (none) 6, .example 2, .css 2)
 
 ## Summary
-- 411 nodes · 664 edges · 33 communities (17 shown, 16 thin omitted)
-- Extraction: 90% EXTRACTED · 10% INFERRED · 0% AMBIGUOUS · INFERRED: 64 edges (avg confidence: 0.91)
+- 445 nodes · 754 edges · 31 communities (15 shown, 16 thin omitted)
+- Extraction: 90% EXTRACTED · 10% INFERRED · 0% AMBIGUOUS · INFERRED: 75 edges (avg confidence: 0.91)
 - Token cost: 0 input · 0 output
 
 ## Graph Freshness
-- Built from commit: `ab15e5f3`
+- Built from commit: `fc89afb7`
 - Run `git rev-parse HEAD` and compare to check if the graph is stale.
 - Run `graphify update .` after code changes (no API cost).
 
@@ -31,29 +31,27 @@
 - signup.js
 - deploy.sh
 - package.json
-- models.py
+- login_view
 - entrypoint.sh
 - CustomUser
-- AppointmentSerializer
+- Appointment
 - role-switch.js
 - permissions.py
 - .as_user
 - ProfessorViewSet
-- serializers.py
 - SignupForm
-- api/urls.py
 
 ## God Nodes (most connected - your core abstractions)
 1. `CustomUser` - 24 edges
-2. `BaseTestCase` - 17 edges
-3. `Appointment` - 16 edges
-4. `PageTests` - 15 edges
-5. `Notification` - 14 edges
+2. `Appointment` - 18 edges
+3. `BaseTestCase` - 18 edges
+4. `Notification` - 16 edges
+5. `PageTests` - 15 edges
 6. `SignupTests` - 14 edges
-7. `BookingTests` - 13 edges
-8. `AppointmentAccessTests` - 13 edges
-9. `BookingRuleTests` - 13 edges
-10. `AppointmentViewSet` - 13 edges
+7. `api()` - 14 edges
+8. `BookingTests` - 13 edges
+9. `AppointmentAccessTests` - 13 edges
+10. `BookingRuleTests` - 13 edges
 
 ## Surprising Connections (you probably didn't know these)
 - `Manage Appointments table (Student, Time, Action columns; empty)` --shares_data_with--> `Appointment`  [INFERRED]
@@ -74,7 +72,7 @@
 - **Student Dashboard Features** — frontend_templates_student_dashboard_availability_section, frontend_templates_student_dashboard_locator_section, frontend_templates_student_dashboard_appointment_section, frontend_templates_student_dashboard_notifications_section [EXTRACTED 1.00]
 - **Role-Based UI Templates** — frontend_templates_login, frontend_templates_student_dashboard, frontend_templates_professor_dashboard [INFERRED 0.85]
 
-## Communities (33 total, 16 thin omitted)
+## Communities (31 total, 16 thin omitted)
 
 ### Community 0 - "eduaccess_backend/urls.py"
 Cohesion: 0.18
@@ -93,16 +91,12 @@ Cohesion: 0.07
 Nodes (13): MyProfessor, Meta, Admin site, API, CI, Commits, Dependencies, Deployment (homelab) (+5 more)
 
 ### Community 5 - "script.js"
-Cohesion: 0.18
-Nodes (28): Student Dashboard screenshot (Welcome, Student) with frosted-glass cards over blurred campus building background, Book Appointment form (professor select, time slot datetime, Submit), Cabin Locator section (professor name input + Find Cabin button), Notifications section (empty), Professor Availability table (Professor Ashish: Free), actionButton(), api(), bookProfessor() (+20 more)
-
-### Community 6 - "PageTests"
-Cohesion: 0.11
-Nodes (9): PageTests, login_view(), _wrong_role_message(), Username and Password fields with icons, EduAccess logo and title branding, Frosted-glass login card over blurred campus background, Teal Login button, EduAccess Login Page Screenshot (+1 more)
+Cohesion: 0.16
+Nodes (33): Student Dashboard screenshot (Welcome, Student) with frosted-glass cards over blurred campus building background, Book Appointment form (professor select, time slot datetime, Submit), Cabin Locator section (professor name input + Find Cabin button), Notifications section (empty), Professor Availability table (Professor Ashish: Free), actionButton(), addOpenTime(), api() (+25 more)
 
 ### Community 7 - "CustomUser"
 Cohesion: 0.09
-Nodes (7): Migration, Migration, Migration, Migration, Migration, Migration, Migration
+Nodes (8): Migration, Migration, Migration, Migration, Migration, Migration, Migration, Migration
 
 ### Community 15 - "signup.js"
 Cohesion: 0.40
@@ -112,13 +106,17 @@ Nodes (3): collegeId, email, form
 Cohesion: 0.20
 Nodes (9): description, devDependencies, @biomejs/biome, name, private, scripts, format, lint (+1 more)
 
-### Community 22 - "CustomUser"
-Cohesion: 0.11
-Nodes (8): Command, CustomUser, Meta, AdminSeparationTests, Accounts and sign-up, Professor Dashboard screenshot (EduAccess), Update Availability radio group (Free/Busy/Unavailable), Manage Appointments table (Student, Time, Action columns; empty)
+### Community 20 - "login_view"
+Cohesion: 0.22
+Nodes (8): login_view(), _wrong_role_message(), Username and Password fields with icons, EduAccess logo and title branding, Frosted-glass login card over blurred campus background, Teal Login button, EduAccess Login Page Screenshot, Select Role dropdown
 
-### Community 23 - "AppointmentSerializer"
-Cohesion: 0.11
-Nodes (8): Appointment, AppointmentSerializer, Meta, AppointmentStatusSerializer, Meta, AppointmentViewSet, _name(), _when()
+### Community 22 - "CustomUser"
+Cohesion: 0.08
+Nodes (11): Command, CustomUser, Meta, MeSerializer, Meta, AdminSeparationTests, MeView, Accounts and sign-up (+3 more)
+
+### Community 23 - "Appointment"
+Cohesion: 0.05
+Nodes (20): Appointment, Notification, OpenTime, Meta, AppointmentSerializer, Meta, AppointmentStatusSerializer, Meta (+12 more)
 
 ### Community 24 - "role-switch.js"
 Cohesion: 0.33
@@ -129,16 +127,8 @@ Cohesion: 0.22
 Nodes (3): dashboard_for(), IsAppointmentParticipant, Layout
 
 ### Community 26 - ".as_user"
-Cohesion: 0.07
-Nodes (9): AdminUserCreationTests, AppointmentAccessTests, BaseTestCase, make_user(), MeTests, MyProfessorTests, NotificationTests, ProfessorDirectoryTests (+1 more)
-
-### Community 28 - "ProfessorViewSet"
-Cohesion: 0.15
-Nodes (4): CustomUserAdmin, ProfessorSerializer, Meta, ProfessorViewSet
-
-### Community 29 - "serializers.py"
-Cohesion: 0.22
-Nodes (4): MeSerializer, Meta, NotificationSerializer, Meta
+Cohesion: 0.06
+Nodes (9): AdminUserCreationTests, AppointmentAccessTests, BaseTestCase, MeTests, MyProfessorTests, NotificationTests, OpenTimeTests, ProfessorDirectoryTests (+1 more)
 
 ### Community 30 - "SignupForm"
 Cohesion: 0.17
@@ -146,14 +136,14 @@ Nodes (3): SignupForm, Meta, signup_view()
 
 ## Knowledge Gaps
 - **11 isolated node(s):** `@biomejs/biome`, `Neoclassical university building with golden dome, palm-lined lawn, blue sky`, `Campus Background Photo (domed administrative building)`, `Django`, `gunicorn + whitenoise (deployment)` (+6 more)
-  These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 171 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
+  These have ≤1 connection - possible missing edges or undocumented components. (Counts symbols only; 180 node(s) total have ≤1 connection when file, concept and rationale nodes are included.)
 - **16 thin communities (<3 nodes) omitted from report** — run `graphify query` to explore isolated nodes.
 
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does `Layout` connect `permissions.py` to `eduaccess_backend/urls.py`, `Project Config & Entrypoints`, `script.js`, `models.py`, `CustomUser`, `AppointmentSerializer`, `SignupForm`?**
-  _High betweenness centrality (0.253) - this node is a cross-community bridge._
+- **Why does `Layout` connect `permissions.py` to `eduaccess_backend/urls.py`, `Project Config & Entrypoints`, `script.js`, `CustomUser`, `Appointment`, `SignupForm`?**
+  _High betweenness centrality (0.252) - this node is a cross-community bridge._
 - **Are the 13 inferred relationships involving `CustomUser` (e.g. with `SignupForm` and `Command`) actually correct?**
   _`CustomUser` has 13 INFERRED edges - model-reasoned connections that need verification._
 - **What connects `@biomejs/biome`, `Neoclassical university building with golden dome, palm-lined lawn, blue sky`, `Campus Background Photo (domed administrative building)` to the rest of the system?**
@@ -161,8 +151,8 @@ _Questions this graph is uniquely positioned to answer:_
 - **Should `biome.json` be split into smaller, more focused modules?**
   _Cohesion score 0.125 - nodes in this community are weakly interconnected._
 - **Why does `api()` connect `script.js` to `permissions.py`?**
-  _High betweenness centrality (0.194) - this node is a cross-community bridge._
-- **Are the 8 inferred relationships involving `Appointment` (e.g. with `AppointmentSerializer` and `AppointmentStatusSerializer`) actually correct?**
-  _`Appointment` has 8 INFERRED edges - model-reasoned connections that need verification._
+  _High betweenness centrality (0.198) - this node is a cross-community bridge._
+- **Are the 10 inferred relationships involving `Appointment` (e.g. with `AppointmentSerializer` and `AppointmentStatusSerializer`) actually correct?**
+  _`Appointment` has 10 INFERRED edges - model-reasoned connections that need verification._
 - **Should `Frontend Templates & Flows` be split into smaller, more focused modules?**
   _Cohesion score 0.11333333333333333 - nodes in this community are weakly interconnected._
