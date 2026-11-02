@@ -1,3 +1,5 @@
+import re
+
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
@@ -158,6 +160,26 @@ class NotificationViewSet(viewsets.ReadOnlyModelViewSet):
 
 
 SEARCH_MIN_CHARS = 2
+BLOCK_TOKEN = re.compile(r'^(FB|AB)(\d+)$', re.IGNORECASE)
+
+
+def professor_search(query):
+    """Every word must match. 'FB3' / 'AB2' match the faculty / academic block exactly; other words match
+    name, username, cabin or employee ID. So 'FB3 AB2 : 106', 'AB2' and 'gupta' all work."""
+    condition = Q()
+    for word in query.replace(':', ' ').split():
+        block = BLOCK_TOKEN.match(word)
+        if block:
+            field = 'faculty_block' if block.group(1).upper() == 'FB' else 'academic_block'
+            condition &= Q(**{field: int(block.group(2))})
+            continue
+        text = Q()
+        for field in ('username', 'first_name', 'middle_name', 'last_name', 'cabin', 'college_id'):
+            text |= Q(**{f'{field}__icontains': word})
+        condition &= text
+    return condition
+
+
 SEARCH_MAX_RESULTS = 20
 
 
@@ -191,10 +213,11 @@ class ProfessorViewSet(viewsets.ReadOnlyModelViewSet):
             query = query.strip()
             if len(query) < SEARCH_MIN_CHARS:
                 return Response({'detail': f'Type at least {SEARCH_MIN_CHARS} characters to search.'}, status=400)
-            match = Q()
-            for field in ('username', 'first_name', 'middle_name', 'last_name', 'cabin_number', 'college_id'):
-                match |= Q(**{f'{field}__icontains': query})
-            professors = self.all_professors().filter(match).order_by('first_name', 'last_name')[:SEARCH_MAX_RESULTS]
+            professors = (
+                self.all_professors()
+                .filter(professor_search(query))
+                .order_by('first_name', 'last_name')[:SEARCH_MAX_RESULTS]
+            )
         return Response(self.get_serializer(professors, many=True).data)
 
     @action(detail=True, methods=['post', 'delete'], url_path='mine')

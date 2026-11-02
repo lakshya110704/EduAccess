@@ -58,7 +58,7 @@
       <h3 id="open-time-title"><i class="fas fa-door-open"></i> Open Time Today</h3>
       <button type="button" class="panel-close" data-close-dialog aria-label="Close">✕</button>
     </div>
-    <p>When you're in your cabin{% if request.user.cabin_number %} ({{ request.user.cabin_number }}){% endif %} and anyone can walk in. Students see it right away; no appointments can be booked inside it.</p>
+    <p>When you're in your cabin{% if request.user.cabin_label %} ({{ request.user.cabin_label }}){% endif %} and anyone can walk in. Students see it right away; no appointments can be booked inside it.</p>
     <form id="open-time-form">
       <label>From: <input type="time" id="open-start" step="900" required></label>
       <label>To: <input type="time" id="open-end" step="900" required></label>

@@ -6,9 +6,9 @@ from .models import Appointment, CustomUser, Notification
 
 class CustomUserAdmin(UserAdmin):
     model = CustomUser
-    list_display = ['username', 'first_name', 'last_name', 'role', 'college_id', 'email', 'cabin_number', 'is_active']
+    list_display = ['username', 'first_name', 'last_name', 'role', 'college_id', 'email', 'cabin_label', 'is_active']
     list_filter = ('role', *UserAdmin.list_filter)
-    search_fields = (*UserAdmin.search_fields, 'college_id')
+    search_fields = (*UserAdmin.search_fields, 'college_id', 'cabin')
     actions = ['activate_accounts']
 
     # "Add user" page: account and EduAccess profile on one page, so a student or professor
@@ -25,7 +25,9 @@ class CustomUserAdmin(UserAdmin):
                     'email',
                     'role',
                     'college_id',
-                    'cabin_number',
+                    'academic_block',
+                    'faculty_block',
+                    'cabin',
                     'availability_status',
                 ),
             },
@@ -37,10 +39,22 @@ class CustomUserAdmin(UserAdmin):
         (
             'Additional Info',
             {
-                'fields': ('role', 'middle_name', 'college_id', 'availability_status', 'cabin_number'),
+                'fields': (
+                    'role',
+                    'middle_name',
+                    'college_id',
+                    'availability_status',
+                    'academic_block',
+                    'faculty_block',
+                    'cabin',
+                ),
             },
         ),
     )
+
+    @admin.display(description='Cabin')
+    def cabin_label(self, obj):
+        return obj.cabin_label
 
     @admin.action(description='Activate selected accounts')
     def activate_accounts(self, request, queryset):

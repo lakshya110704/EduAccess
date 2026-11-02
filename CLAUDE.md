@@ -40,7 +40,9 @@ availability, cabin locator and appointment booking for students and professors.
 
 ## Accounts and sign-up
 
-- `CustomUser` adds `role`, `availability_status`, `cabin_number`, `middle_name`, `college_id` (roll number
+- Cabin location: `academic_block`, `faculty_block`, `cabin` → `cabin_label` "FB3 AB2 : 106" (Faculty Block 3 in
+  Academic Block 2, cabin 106); `parse_cabin`/`format_cabin` in `api/models.py`. Search understands `FB3`, `AB2`, room.
+- `CustomUser` adds `role`, `availability_status`, cabin fields, `middle_name`, `college_id` (roll number
   for students, employee ID for professors). `get_full_name()` = first + middle + last.
 - DB constraints: email unique case-insensitively (when set); `college_id` unique per role (when set).
 - `/signup/` (link on the login page): students and professors register themselves. Email must be on the

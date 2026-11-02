@@ -13,7 +13,9 @@ DEMO_USERS = [
         'role': 'professor',
         'first_name': 'Ashish',
         'last_name': 'Gupta',
-        'cabin_number': 'A-105',
+        'academic_block': 2,
+        'faculty_block': 3,
+        'cabin': '106',
         'availability_status': 'Free',
     },
     {
@@ -21,7 +23,9 @@ DEMO_USERS = [
         'role': 'professor',
         'first_name': 'Neha',
         'last_name': 'Iyer',
-        'cabin_number': 'B-210',
+        'academic_block': 1,
+        'faculty_block': 2,
+        'cabin': '210',
         'availability_status': 'Busy',
     },
 ]

@@ -6,7 +6,7 @@ from django.test import TestCase
 from django.utils import timezone
 from rest_framework.test import APIClient
 
-from .models import Appointment, CustomUser, MyProfessor, Notification
+from .models import Appointment, CustomUser, MyProfessor, Notification, format_cabin, parse_cabin
 
 
 def make_user(username, role, **extra):
@@ -17,7 +17,9 @@ class BaseTestCase(TestCase):
     def setUp(self):
         self.student = make_user('stu', 'student')
         self.other_student = make_user('stu2', 'student')
-        self.prof = make_user('prof', 'professor', first_name='Ada', last_name='Lovelace', cabin_number='A-105')
+        self.prof = make_user(
+            'prof', 'professor', first_name='Ada', last_name='Lovelace', academic_block=2, faculty_block=3, cabin='106'
+        )
         self.other_prof = make_user('prof2', 'professor')
         # Tomorrow, rounded down to a quarter hour (bookings must start on :00/:15/:30/:45).
         self.future = (timezone.now() + timedelta(days=1)).replace(second=0, microsecond=0)
@@ -53,7 +55,7 @@ class ProfessorDirectoryTests(BaseTestCase):
 
     def test_search_by_name_returns_cabin(self):
         resp = self.as_user(self.student).get('/api/professors/?search=lovelace')
-        self.assertEqual([(p['username'], p['cabin_number']) for p in resp.json()], [('prof', 'A-105')])
+        self.assertEqual([(p['username'], p['cabin_label']) for p in resp.json()], [('prof', 'FB3 AB2 : 106')])
 
     def test_directory_is_read_only(self):
         client = self.as_user(self.student)
@@ -274,7 +276,7 @@ class AdminUserCreationTests(BaseTestCase):
 
     def test_add_page_shows_profile_fields(self):
         resp = self.client.get('/admin/api/customuser/add/')
-        for field in ('role', 'cabin_number', 'availability_status', 'first_name'):
+        for field in ('role', 'academic_block', 'faculty_block', 'cabin', 'availability_status', 'first_name'):
             self.assertContains(resp, f'name="{field}"')
 
     def test_professor_created_in_one_step(self):
@@ -288,13 +290,17 @@ class AdminUserCreationTests(BaseTestCase):
                 'first_name': 'Neha',
                 'last_name': 'Iyer',
                 'role': 'professor',
-                'cabin_number': 'B-210',
+                'academic_block': '1',
+                'faculty_block': '2',
+                'cabin': '210',
                 'availability_status': 'Busy',
             },
         )
         self.assertEqual(resp.status_code, 302, resp.content[:500])
         prof = CustomUser.objects.get(username='newprof')
-        self.assertEqual((prof.role, prof.cabin_number, prof.availability_status), ('professor', 'B-210', 'Busy'))
+        self.assertEqual(
+            (prof.role, prof.cabin_label, prof.availability_status), ('professor', 'FB2 AB1 : 210', 'Busy')
+        )
         self.assertTrue(prof.check_password('a-long-unusual-pass-77'))
 
 
@@ -637,3 +643,25 @@ class DashboardLayoutTests(BaseTestCase):
         self.assertEqual(self.sections(html), ['appointments', 'notifications'])
         self.assertIn('id="open-time-dialog"', html)
         self.assertIn('class="segmented status-switch"', html)
+
+
+class CabinLocationTests(BaseTestCase):
+    def test_parse_and_format(self):
+        self.assertEqual(parse_cabin('FB3 AB2 : 106'), (2, 3, '106'))
+        self.assertEqual(parse_cabin('fb3ab2:106a'), (2, 3, '106A'))
+        self.assertIsNone(parse_cabin('A-105'))
+        self.assertEqual(format_cabin(2, 3, '106'), 'FB3 AB2 : 106')
+        self.assertEqual(format_cabin(None, None, '106'), '106')
+        self.assertEqual(format_cabin(None, None, ''), '')
+
+    def search(self, query):
+        resp = self.as_user(self.student).get('/api/professors/', {'search': query})
+        return sorted(p['username'] for p in resp.json())
+
+    def test_search_by_cabin_parts(self):
+        make_user('prof3', 'professor', academic_block=2, faculty_block=1, cabin='204')
+        self.assertEqual(self.search('FB3 AB2 : 106'), ['prof'])
+        self.assertEqual(self.search('AB2'), ['prof', 'prof3'])
+        self.assertEqual(self.search('fb1'), ['prof3'])
+        self.assertEqual(self.search('106'), ['prof'])
+        self.assertEqual(self.search('AB2 lovelace'), ['prof'])

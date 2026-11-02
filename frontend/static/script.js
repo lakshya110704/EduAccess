@@ -187,7 +187,7 @@ async function loadProfessors() {
           ...mine.map((p) =>
             el("tr", {}, [
               el("td", { text: p.display_name }),
-              el("td", { text: p.cabin_number || "—" }),
+              el("td", { text: p.cabin_label || "—" }),
               statusCell(p),
               openTimeCell(p),
               el("td", {}, [actionButton("✕ Remove", "action-cancel", () => setMine(p, false))]),
@@ -232,7 +232,7 @@ async function runSearch(query) {
       actions.appendChild(actionButton("Book", "action-confirm", async () => bookProfessor(p)));
       return el("tr", {}, [
         el("td", { text: p.display_name }),
-        el("td", { text: p.cabin_number || "—" }),
+        el("td", { text: p.cabin_label || "—" }),
         statusCell(p),
         actions,
       ]);

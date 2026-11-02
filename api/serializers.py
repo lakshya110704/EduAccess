@@ -13,7 +13,7 @@ class ProfessorSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CustomUser
-        fields = ['id', 'username', 'display_name', 'availability_status', 'cabin_number', 'is_mine', 'open_today']
+        fields = ['id', 'username', 'display_name', 'availability_status', 'cabin_label', 'is_mine', 'open_today']
         read_only_fields = fields
 
     def get_open_today(self, obj):
@@ -34,8 +34,8 @@ class MeSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CustomUser
-        fields = ['id', 'username', 'display_name', 'role', 'availability_status', 'cabin_number']
-        read_only_fields = ['id', 'username', 'display_name', 'role', 'cabin_number']
+        fields = ['id', 'username', 'display_name', 'role', 'availability_status', 'cabin_label']
+        read_only_fields = ['id', 'username', 'display_name', 'role', 'cabin_label']
 
     def get_display_name(self, obj):
         return obj.get_full_name() or obj.username

@@ -54,9 +54,9 @@
     "semantic_hash": ""
   },
   "api/tests.py": {
-    "mtime": 1793631345.2930663,
-    "seen": 1793631534.777857,
-    "ast_hash": "6ea26fe88daada7f629dce8ad2b098ee",
+    "mtime": 1793632862.0286696,
+    "seen": 1793633335.016515,
+    "ast_hash": "22fbc30bc347ade39141e558f7beae8f",
     "semantic_hash": ""
   },
   "api/urls.py": {
@@ -102,9 +102,9 @@
     "semantic_hash": "f932e5c6e833b9c4e996281520c715f5"
   },
   "frontend/static/script.js": {
-    "mtime": 1793631324.8367724,
-    "seen": 1793631534.7778718,
-    "ast_hash": "3a84b7d759de6ada01fb994c1d9c8c4d",
+    "mtime": 1793633187.6971512,
+    "seen": 1793633335.016531,
+    "ast_hash": "6807eb3436858090ca3924002dafa7c7",
     "semantic_hash": ""
   },
   "manage.py": {
@@ -126,15 +126,15 @@
     "semantic_hash": ""
   },
   "frontend/templates/professor-dashboard.html": {
-    "mtime": 1793631324.8355699,
-    "seen": 1793631534.7778869,
-    "ast_hash": "a19cf61d97a310888ae935aad5fc102f",
+    "mtime": 1793632811.388536,
+    "seen": 1793633335.016547,
+    "ast_hash": "6a3d7525108c389ca9904bd60d5baf2b",
     "semantic_hash": ""
   },
   "frontend/templates/student-dashboard.html": {
-    "mtime": 1793631324.8361077,
-    "seen": 1793631534.777893,
-    "ast_hash": "49db550c6829fbcc23dc46c9bbd3be3d",
+    "mtime": 1793632811.388201,
+    "seen": 1793633335.0165539,
+    "ast_hash": "6c8c47cd39ae16f651ca00faa4ddde9d",
     "semantic_hash": ""
   },
   "requirements.txt": {
@@ -198,9 +198,9 @@
     "semantic_hash": ""
   },
   "CLAUDE.md": {
-    "mtime": 1793631532.7085116,
-    "seen": 1793631534.777879,
-    "ast_hash": "e11d6931f3503d0766f680715905e608",
+    "mtime": 1793633218.9368963,
+    "seen": 1793633335.0165389,
+    "ast_hash": "1ba8f591ea370ddc02c5d3e9a3b3d60e",
     "semantic_hash": ""
   },
   ".github/workflows/ci.yml": {

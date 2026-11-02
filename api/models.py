@@ -1,3 +1,4 @@
+import re
 from datetime import timedelta
 
 from django.contrib.auth.models import AbstractUser, Group, Permission
@@ -16,6 +17,25 @@ USER_ROLES = (
 SLOT_LENGTH = timedelta(minutes=15)
 SLOT_CHOICES = ((1, '15 minutes'), (2, '30 minutes (2 slots)'))
 
+# Cabin locations are written "FB3 AB2 : 106": Faculty Block 3 inside Academic Block 2, cabin 106.
+CABIN_PATTERN = re.compile(r'^\s*FB\s*(\d+)\s*AB\s*(\d+)\s*:?\s*(\S+)\s*$', re.IGNORECASE)
+
+
+def parse_cabin(text):
+    """'FB3 AB2 : 106' -> (academic_block=2, faculty_block=3, cabin='106'), or None if it isn't in that format."""
+    match = CABIN_PATTERN.match(text or '')
+    if not match:
+        return None
+    faculty_block, academic_block, cabin = match.groups()
+    return int(academic_block), int(faculty_block), cabin.upper()
+
+
+def format_cabin(academic_block, faculty_block, cabin):
+    if academic_block and faculty_block and cabin:
+        return f'FB{faculty_block} AB{academic_block} : {cabin}'
+    return cabin or ''
+
+
 # Availability options
 AVAILABILITY_CHOICES = (
     ('Free', 'Free'),
@@ -27,7 +47,10 @@ AVAILABILITY_CHOICES = (
 class CustomUser(AbstractUser):
     role = models.CharField(max_length=20, choices=USER_ROLES)
     availability_status = models.CharField(max_length=20, choices=AVAILABILITY_CHOICES, default='Unavailable')
-    cabin_number = models.CharField(max_length=10, blank=True, default='')
+    # Cabin location, displayed as "FB<faculty_block> AB<academic_block> : <cabin>".
+    academic_block = models.PositiveSmallIntegerField(null=True, blank=True)
+    faculty_block = models.PositiveSmallIntegerField(null=True, blank=True)
+    cabin = models.CharField('cabin number', max_length=10, blank=True, default='')
     middle_name = models.CharField(max_length=150, blank=True, default='')
     # Roll number for students, employee ID for professors.
     college_id = models.CharField('college ID', max_length=30, blank=True, default='')
@@ -60,6 +83,10 @@ class CustomUser(AbstractUser):
 
     def __str__(self):
         return f'{self.username} ({self.role})'
+
+    @property
+    def cabin_label(self):
+        return format_cabin(self.academic_block, self.faculty_block, self.cabin)
 
     def get_full_name(self):
         return ' '.join(part for part in (self.first_name, self.middle_name, self.last_name) if part).strip()
