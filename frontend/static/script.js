@@ -152,6 +152,16 @@ function openTimeCell(p) {
   return el("td", { text: windows.length ? `${windows.join(", ")} (walk-in)` : "—", className: "open-time" });
 }
 
+// "📍 Directions" link to the cabin directions page, when the cabin location is complete.
+function directionsLink(p) {
+  if (!p.directions_url) return null;
+  return el("a", {
+    text: "📍 Directions",
+    className: "action-directions",
+    attrs: { href: p.directions_url, target: "_blank", rel: "noopener" },
+  });
+}
+
 function statusCell(p) {
   return el("td", { text: p.availability_status, className: `status-${p.availability_status.toLowerCase()}` });
 }
@@ -190,7 +200,11 @@ async function loadProfessors() {
               el("td", { text: p.cabin_label || "—" }),
               statusCell(p),
               openTimeCell(p),
-              el("td", {}, [actionButton("✕ Remove", "action-cancel", () => setMine(p, false))]),
+              el(
+                "td",
+                {},
+                [directionsLink(p), actionButton("✕ Remove", "action-cancel", () => setMine(p, false))].filter(Boolean),
+              ),
             ]),
           ),
         );
@@ -230,6 +244,8 @@ async function runSearch(query) {
           : actionButton("☆ Add", "action-add", () => setMine(p, true)),
       );
       actions.appendChild(actionButton("Book", "action-confirm", async () => bookProfessor(p)));
+      const directions = directionsLink(p);
+      if (directions) actions.appendChild(directions);
       return el("tr", {}, [
         el("td", { text: p.display_name }),
         el("td", { text: p.cabin_label || "—" }),

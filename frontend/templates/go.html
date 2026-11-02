@@ -1,0 +1,55 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Cabin {{ label }} – EduAccess directions</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <link rel="stylesheet" href="{% static 'styles.css' %}"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+</head>
+<body class="login-body signup-body" data-theme="student">
+  <div class="background-blur"></div>
+  <div class="login-container go-container">
+    <img src="{% static 'assets/logo.png' %}" alt="EduAccess" class="go-logo">
+    <h1><i class="fas fa-location-dot"></i> Cabin {{ label }}</h1>
+
+    <ol class="go-steps">
+      <li>
+        <h2>Walk to Academic Block {{ academic }}</h2>
+        {% if block.maps_url %}
+          <a class="go-button" href="{{ block.maps_url }}" target="_blank" rel="noopener">
+            <i class="fas fa-route"></i> Open walking directions in Google Maps
+          </a>
+        {% else %}
+          <p class="go-muted">Directions to this building aren't set up yet. Ask at the main gate for Academic Block {{ academic }}.</p>
+        {% endif %}
+      </li>
+
+      {% if block.view_360_url %}
+        <li>
+          <h2>What the entrance looks like</h2>
+          <a class="go-button go-button-secondary" href="{{ block.view_360_url }}" target="_blank" rel="noopener">
+            <i class="fas fa-vr-cardboard"></i> See the 360° view
+          </a>
+        </li>
+      {% endif %}
+
+      <li>
+        <h2>Inside the building</h2>
+        {% if faculty_block %}
+          <p class="go-floor"><i class="fas fa-stairs"></i> {{ faculty_block.floor_label }}</p>
+          <p class="go-directions">{{ faculty_block.directions|linebreaksbr }}</p>
+        {% else %}
+          <p class="go-muted">Indoor directions for this faculty block aren't written yet. Ask at the Academic Block {{ academic }} reception.</p>
+        {% endif %}
+        <p class="go-cabin">Then look for <strong>cabin {{ cabin }}</strong>.</p>
+      </li>
+    </ol>
+
+    <a class="go-button go-whatsapp" href="{{ whatsapp_url }}" target="_blank" rel="noopener">
+      <i class="fab fa-whatsapp"></i> Send these directions to WhatsApp
+    </a>
+  </div>
+</body>
+</html>

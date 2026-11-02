@@ -1,4 +1,5 @@
 from datetime import timedelta
+from decimal import Decimal
 from unittest import skipUnless
 
 from django.db import IntegrityError, connection, transaction
@@ -6,7 +7,16 @@ from django.test import TestCase
 from django.utils import timezone
 from rest_framework.test import APIClient
 
-from .models import Appointment, CustomUser, MyProfessor, Notification, format_cabin, parse_cabin
+from .models import (
+    AcademicBlock,
+    Appointment,
+    CustomUser,
+    FacultyBlock,
+    MyProfessor,
+    Notification,
+    format_cabin,
+    parse_cabin,
+)
 
 
 def make_user(username, role, **extra):
@@ -560,13 +570,14 @@ class BookingRuleTests(BaseTestCase):
 class OpenTimeTests(BaseTestCase):
     def setUp(self):
         super().setUp()
-        # A window later today, on quarter hours, in local time. Fall back to the last full hour before
-        # midnight if "later today" would spill into tomorrow.
+        # A 60-minute window later today, starting at least 15 minutes from now on a quarter hour (local time).
+        # Near midnight there is no such window left today, so these tests are skipped then.
         now = timezone.localtime().replace(second=0, microsecond=0)
-        base = now.replace(minute=0) + timedelta(hours=1)
-        if base.date() != now.date() or base.hour > 21:
-            base = now.replace(hour=22, minute=0)
-        self.open_start, self.open_end = base, base + timedelta(hours=1)
+        start = now + timedelta(minutes=15 + (15 - now.minute % 15) % 15)
+        end = start + timedelta(minutes=60)
+        if end.date() != now.date():
+            self.skipTest('too close to midnight for a same-day open-time window')
+        self.open_start, self.open_end = start, end
 
     def add(self, start=None, end=None, user=None):
         return self.as_user(user or self.prof).post(
@@ -593,7 +604,8 @@ class OpenTimeTests(BaseTestCase):
 
     def test_no_overlapping_windows(self):
         self.add()
-        resp = self.add(start=self.open_start + timedelta(minutes=30), end=self.open_end + timedelta(minutes=30))
+        # A window inside the first one (stays within today even late in the evening).
+        resp = self.add(start=self.open_start + timedelta(minutes=15), end=self.open_end - timedelta(minutes=15))
         self.assertContains(resp, 'overlaps open time', status_code=400)
 
     def test_cannot_cover_a_confirmed_appointment(self):
@@ -665,3 +677,58 @@ class CabinLocationTests(BaseTestCase):
         self.assertEqual(self.search('fb1'), ['prof3'])
         self.assertEqual(self.search('106'), ['prof'])
         self.assertEqual(self.search('AB2 lovelace'), ['prof'])
+
+
+class DirectionsTests(BaseTestCase):
+    def setUp(self):
+        super().setUp()
+        self.block = AcademicBlock.objects.create(
+            number=2,
+            latitude=Decimal('26.844100'),
+            longitude=Decimal('75.565493'),
+            view_360_url='https://example.com/ab2',
+        )
+        FacultyBlock.objects.create(
+            academic_block=self.block, number=3, floor=1, directions='Take the right staircase.\nFB3 is the left wing.'
+        )
+
+    def test_full_directions_page(self):
+        resp = self.client.get('/go/AB2/FB3/106/')
+        self.assertContains(resp, 'Cabin FB3 AB2 : 106')
+        self.assertContains(
+            resp, 'https://www.google.com/maps/dir/?api=1&amp;destination=26.844100,75.565493&amp;travelmode=walking'
+        )
+        self.assertContains(resp, 'https://example.com/ab2')
+        self.assertContains(resp, 'Floor 1')
+        self.assertContains(resp, 'Take the right staircase.<br>FB3 is the left wing.')
+        self.assertContains(resp, 'https://wa.me/?text=')
+
+    def test_page_needs_no_login_and_shows_no_names(self):
+        resp = self.client.get('/go/AB2/FB3/106/')  # anonymous
+        self.assertEqual(resp.status_code, 200)
+        self.assertNotContains(resp, 'Lovelace')
+        self.assertNotContains(resp, 'prof')
+
+    def test_missing_data_degrades_gracefully(self):
+        resp = self.client.get('/go/AB9/FB1/12/')
+        self.assertContains(resp, "aren't set up yet")
+        self.assertContains(resp, "aren't written yet")
+        self.assertContains(resp, '<strong>cabin 12</strong>')
+
+    def test_ground_floor_label(self):
+        FacultyBlock.objects.create(academic_block=self.block, number=4, floor=0, directions='Straight ahead.')
+        self.assertContains(self.client.get('/go/AB2/FB4/1/'), 'Ground floor')
+
+    def test_professor_api_links_to_directions(self):
+        client = self.as_user(self.student)
+        client.post(f'/api/professors/{self.prof.id}/mine/')
+        self.assertEqual(client.get('/api/professors/').json()[0]['directions_url'], '/go/AB2/FB3/106/')
+        self.assertEqual(
+            self.as_user(self.student).get('/api/professors/?search=prof2').json()[0]['directions_url'], ''
+        )
+
+    def test_admin_edits_blocks_inline(self):
+        admin_user = CustomUser.objects.create_superuser(username='boss', password='pass-1234-word')
+        self.client.force_login(admin_user)
+        resp = self.client.get(f'/admin/api/academicblock/{self.block.id}/change/')
+        self.assertContains(resp, 'faculty_blocks-0-directions')

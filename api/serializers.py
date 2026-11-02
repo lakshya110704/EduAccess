@@ -13,12 +13,23 @@ class ProfessorSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = CustomUser
-        fields = ['id', 'username', 'display_name', 'availability_status', 'cabin_label', 'is_mine', 'open_today']
+        fields = [
+            'id',
+            'username',
+            'display_name',
+            'availability_status',
+            'cabin_label',
+            'directions_url',
+            'is_mine',
+            'open_today',
+        ]
         read_only_fields = fields
 
     def get_open_today(self, obj):
         windows = OpenTime.objects.filter(professor=obj, start__date=timezone.localdate()).order_by('start')
         return [{'start': w.start, 'end': w.end} for w in windows]
+
+    directions_url = serializers.CharField(source='directions_path', read_only=True)
 
     def get_display_name(self, obj):
         return obj.get_full_name() or obj.username

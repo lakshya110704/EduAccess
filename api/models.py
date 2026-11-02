@@ -88,6 +88,13 @@ class CustomUser(AbstractUser):
     def cabin_label(self):
         return format_cabin(self.academic_block, self.faculty_block, self.cabin)
 
+    @property
+    def directions_path(self):
+        """Path of the cabin directions page, or '' if the cabin location is incomplete."""
+        if self.academic_block and self.faculty_block and self.cabin:
+            return f'/go/AB{self.academic_block}/FB{self.faculty_block}/{self.cabin}/'
+        return ''
+
     def get_full_name(self):
         return ' '.join(part for part in (self.first_name, self.middle_name, self.last_name) if part).strip()
 
@@ -119,6 +126,50 @@ class Appointment(models.Model):
     def overlapping(cls, professor, start, end):
         """Appointments of `professor` whose [start, end) range overlaps the given one."""
         return cls.objects.filter(professor=professor, appointment_time__lt=end, end_time__gt=start)
+
+
+class AcademicBlock(models.Model):
+    """A campus building (AB1, AB2, ...). Its entrance coordinates drive the outdoor Google Maps directions."""
+
+    number = models.PositiveSmallIntegerField(unique=True)
+    name = models.CharField(max_length=100, blank=True, help_text='Optional, e.g. "Academic Block 2".')
+    latitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
+    longitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
+    view_360_url = models.URLField(
+        '360° view link', blank=True, help_text='Virtual tour or Street View of the entrance.'
+    )
+
+    class Meta:
+        ordering = ['number']
+
+    def __str__(self):
+        return self.name or f'Academic Block {self.number}'
+
+    @property
+    def maps_url(self):
+        if self.latitude is None or self.longitude is None:
+            return ''
+        return f'https://www.google.com/maps/dir/?api=1&destination={self.latitude},{self.longitude}&travelmode=walking'
+
+
+class FacultyBlock(models.Model):
+    """A faculty block inside an academic block. A faculty block is on a single floor."""
+
+    academic_block = models.ForeignKey(AcademicBlock, on_delete=models.CASCADE, related_name='faculty_blocks')
+    number = models.PositiveSmallIntegerField()
+    floor = models.SmallIntegerField(help_text='0 = ground floor.')
+    directions = models.TextField(help_text='How to get here from the academic block entrance or lobby.')
+
+    class Meta:
+        ordering = ['academic_block__number', 'number']
+        constraints = [models.UniqueConstraint(fields=['academic_block', 'number'], name='unique_faculty_block')]
+
+    def __str__(self):
+        return f'FB{self.number} AB{self.academic_block.number}'
+
+    @property
+    def floor_label(self):
+        return 'Ground floor' if self.floor == 0 else f'Floor {self.floor}'
 
 
 class OpenTime(models.Model):

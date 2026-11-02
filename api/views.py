@@ -1,4 +1,5 @@
 import re
+from urllib.parse import quote
 
 from django.conf import settings
 from django.contrib import messages
@@ -17,7 +18,16 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from .forms import SignupForm
-from .models import Appointment, CustomUser, MyProfessor, Notification, OpenTime
+from .models import (
+    AcademicBlock,
+    Appointment,
+    CustomUser,
+    FacultyBlock,
+    MyProfessor,
+    Notification,
+    OpenTime,
+    format_cabin,
+)
 from .permissions import IsAppointmentParticipant, dashboard_for, role_required
 from .serializers import (
     AppointmentSerializer,
@@ -315,6 +325,27 @@ def signup_view(request):
         form.save()
         return redirect('signup_done')
     return render(request, 'signup.html', {'form': form, 'email_domains': settings.SIGNUP_EMAIL_DOMAINS})
+
+
+def go_view(request, academic, faculty, cabin):
+    """Directions to a cabin: Google Maps to the academic block, then the faculty block's written directions.
+    Shows only the location (no professor names) and needs no login, so it can be opened from a shared link."""
+    block = AcademicBlock.objects.filter(number=academic).first()
+    faculty_block = FacultyBlock.objects.filter(academic_block=block, number=faculty).first() if block else None
+    label = format_cabin(academic, faculty, cabin)
+    share_text = f'Directions to cabin {label}: {request.build_absolute_uri()}'
+    return render(
+        request,
+        'go.html',
+        {
+            'label': label,
+            'academic': academic,
+            'cabin': cabin,
+            'block': block,
+            'faculty_block': faculty_block,
+            'whatsapp_url': f'https://wa.me/?text={quote(share_text)}',
+        },
+    )
 
 
 def signup_done(request):

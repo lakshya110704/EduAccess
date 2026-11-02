@@ -42,6 +42,13 @@ availability, cabin locator and appointment booking for students and professors.
 
 - Cabin location: `academic_block`, `faculty_block`, `cabin` → `cabin_label` "FB3 AB2 : 106" (Faculty Block 3 in
   Academic Block 2, cabin 106); `parse_cabin`/`format_cabin` in `api/models.py`. Search understands `FB3`, `AB2`, room.
+- Cabin directions: `AcademicBlock` (number, entrance lat/lng, optional 360° link) and `FacultyBlock` (academic block,
+  number, floor — a faculty block is on one floor — and free-text directions), edited together in the admin.
+  `/go/AB<n>/FB<n>/<cabin>/` (`go_view`, `templates/go.html`): Google Maps walking link to the block entrance, 360°
+  view, floor + directions, WhatsApp share (`wa.me`). No login and no professor names on the page (safe to share);
+  missing data shows a fallback. `directions_url` on `/api/professors/` powers the 📍 Directions links.
+  Indoor GPS isn't feasible in a web app (GPS fails indoors; beacons/Wi-Fi need native apps); QR checkpoints rejected.
+  The page is tailnet-only for now; making `/go/` public (Tailscale Funnel) is a later decision.
 - `CustomUser` adds `role`, `availability_status`, cabin fields, `middle_name`, `college_id` (roll number
   for students, employee ID for professors). `get_full_name()` = first + middle + last.
 - DB constraints: email unique case-insensitively (when set); `college_id` unique per role (when set).

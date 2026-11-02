@@ -592,3 +592,94 @@ dialog.panel button[type="submit"] {
 .status-switch input[value="Free"]:checked + label { background-color: #00c853; color: #fff; }
 .status-switch input[value="Busy"]:checked + label { background-color: #ff9800; color: #1a1a1a; }
 .status-switch input[value="Unavailable"]:checked + label { background-color: #e53935; color: #fff; }
+
+/* ---------- Cabin directions page (/go/...) ---------- */
+.go-container {
+  max-width: 520px;
+  text-align: left;
+}
+
+.go-logo {
+  display: block;
+  height: 56px;
+  width: auto;
+  margin: 0 auto 1rem;
+  border-radius: 8px;
+}
+
+.go-container h1 {
+  text-align: center;
+  font-size: 1.5rem;
+}
+
+.go-steps {
+  padding-left: 1.4rem;
+  margin: 1.5rem 0;
+}
+
+.go-steps li {
+  margin-bottom: 1.4rem;
+}
+
+.go-steps li::marker {
+  color: var(--heading);
+  font-weight: bold;
+}
+
+.go-steps h2 {
+  font-size: 1.05rem;
+  margin: 0 0 0.5rem;
+  color: var(--heading);
+}
+
+.go-button {
+  display: inline-block;
+  padding: 0.6rem 1rem;
+  border-radius: 999px;
+  background-color: var(--accent);
+  color: #fff;
+  font-weight: bold;
+  text-decoration: none;
+}
+
+.go-button:hover {
+  background-color: var(--accent-hover);
+}
+
+.go-button-secondary {
+  background: transparent;
+  border: 1px solid var(--heading);
+  color: var(--heading);
+}
+
+.go-whatsapp {
+  display: block;
+  text-align: center;
+  background-color: #25d366;
+}
+
+.go-whatsapp:hover {
+  background-color: #1ebe57;
+}
+
+.go-floor {
+  font-weight: bold;
+  margin: 0 0 0.3rem;
+}
+
+.go-directions {
+  line-height: 1.5;
+  margin: 0 0 0.5rem;
+}
+
+.go-muted {
+  color: #ccc;
+  font-style: italic;
+}
+
+table a.action-directions {
+  color: var(--link);
+  font-weight: bold;
+  text-decoration: none;
+  white-space: nowrap;
+}

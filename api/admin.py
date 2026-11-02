@@ -1,7 +1,7 @@
 from django.contrib import admin, messages
 from django.contrib.auth.admin import UserAdmin
 
-from .models import Appointment, CustomUser, Notification
+from .models import AcademicBlock, Appointment, CustomUser, FacultyBlock, Notification
 
 
 class CustomUserAdmin(UserAdmin):
@@ -65,6 +65,24 @@ class CustomUserAdmin(UserAdmin):
 admin.site.site_header = 'EduAccess Admin'
 admin.site.site_title = 'EduAccess Admin'
 admin.site.index_title = 'Manage EduAccess'
+
+
+class FacultyBlockInline(admin.TabularInline):
+    model = FacultyBlock
+    extra = 1
+    fields = ('number', 'floor', 'directions')
+
+
+@admin.register(AcademicBlock)
+class AcademicBlockAdmin(admin.ModelAdmin):
+    list_display = ['__str__', 'number', 'latitude', 'longitude', 'faculty_block_count']
+    fields = ('number', 'name', 'latitude', 'longitude', 'view_360_url')
+    inlines = [FacultyBlockInline]
+
+    @admin.display(description='Faculty blocks')
+    def faculty_block_count(self, obj):
+        return obj.faculty_blocks.count()
+
 
 admin.site.register(CustomUser, CustomUserAdmin)
 admin.site.register(Appointment)
