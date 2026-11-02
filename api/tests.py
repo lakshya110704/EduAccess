@@ -65,7 +65,7 @@ class ProfessorDirectoryTests(BaseTestCase):
 
     def test_search_by_name_returns_cabin(self):
         resp = self.as_user(self.student).get('/api/professors/?search=lovelace')
-        self.assertEqual([(p['username'], p['cabin_label']) for p in resp.json()], [('prof', 'FB3 AB2 : 106')])
+        self.assertEqual([(p['username'], p['cabin_label']) for p in resp.json()], [('prof', 'AB2 FB3 : 106')])
 
     def test_directory_is_read_only(self):
         client = self.as_user(self.student)
@@ -309,7 +309,7 @@ class AdminUserCreationTests(BaseTestCase):
         self.assertEqual(resp.status_code, 302, resp.content[:500])
         prof = CustomUser.objects.get(username='newprof')
         self.assertEqual(
-            (prof.role, prof.cabin_label, prof.availability_status), ('professor', 'FB2 AB1 : 210', 'Busy')
+            (prof.role, prof.cabin_label, prof.availability_status), ('professor', 'AB1 FB2 : 210', 'Busy')
         )
         self.assertTrue(prof.check_password('a-long-unusual-pass-77'))
 
@@ -659,10 +659,12 @@ class DashboardLayoutTests(BaseTestCase):
 
 class CabinLocationTests(BaseTestCase):
     def test_parse_and_format(self):
+        self.assertEqual(parse_cabin('AB2 FB3 : 106'), (2, 3, '106'))
         self.assertEqual(parse_cabin('FB3 AB2 : 106'), (2, 3, '106'))
+        self.assertEqual(parse_cabin('ab2fb3:106a'), (2, 3, '106A'))
         self.assertEqual(parse_cabin('fb3ab2:106a'), (2, 3, '106A'))
         self.assertIsNone(parse_cabin('A-105'))
-        self.assertEqual(format_cabin(2, 3, '106'), 'FB3 AB2 : 106')
+        self.assertEqual(format_cabin(2, 3, '106'), 'AB2 FB3 : 106')
         self.assertEqual(format_cabin(None, None, '106'), '106')
         self.assertEqual(format_cabin(None, None, ''), '')
 
@@ -672,6 +674,7 @@ class CabinLocationTests(BaseTestCase):
 
     def test_search_by_cabin_parts(self):
         make_user('prof3', 'professor', academic_block=2, faculty_block=1, cabin='204')
+        self.assertEqual(self.search('AB2 FB3 : 106'), ['prof'])
         self.assertEqual(self.search('FB3 AB2 : 106'), ['prof'])
         self.assertEqual(self.search('AB2'), ['prof', 'prof3'])
         self.assertEqual(self.search('fb1'), ['prof3'])
@@ -694,7 +697,7 @@ class DirectionsTests(BaseTestCase):
 
     def test_full_directions_page(self):
         resp = self.client.get('/go/AB2/FB3/106/')
-        self.assertContains(resp, 'Cabin FB3 AB2 : 106')
+        self.assertContains(resp, 'Cabin AB2 FB3 : 106')
         self.assertContains(
             resp, 'https://www.google.com/maps/dir/?api=1&amp;destination=26.844100,75.565493&amp;travelmode=walking'
         )

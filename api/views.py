@@ -175,7 +175,7 @@ BLOCK_TOKEN = re.compile(r'^(FB|AB)(\d+)$', re.IGNORECASE)
 
 def professor_search(query):
     """Every word must match. 'FB3' / 'AB2' match the faculty / academic block exactly; other words match
-    name, username, cabin or employee ID. So 'FB3 AB2 : 106', 'AB2' and 'gupta' all work."""
+    name, username, cabin or employee ID. So 'AB2 FB3 : 106', 'AB2' and 'gupta' all work."""
     condition = Q()
     for word in query.replace(':', ' ').split():
         block = BLOCK_TOKEN.match(word)

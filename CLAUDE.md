@@ -40,7 +40,7 @@ availability, cabin locator and appointment booking for students and professors.
 
 ## Accounts and sign-up
 
-- Cabin location: `academic_block`, `faculty_block`, `cabin` → `cabin_label` "FB3 AB2 : 106" (Faculty Block 3 in
+- Cabin location: `academic_block`, `faculty_block`, `cabin` → `cabin_label` "AB2 FB3 : 106" (Faculty Block 3 in
   Academic Block 2, cabin 106); `parse_cabin`/`format_cabin` in `api/models.py`. Search understands `FB3`, `AB2`, room.
 - Cabin directions: `AcademicBlock` (number, entrance lat/lng, optional 360° link) and `FacultyBlock` (academic block,
   number, floor — a faculty block is on one floor — and free-text directions), edited together in the admin.

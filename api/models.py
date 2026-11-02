@@ -17,22 +17,26 @@ USER_ROLES = (
 SLOT_LENGTH = timedelta(minutes=15)
 SLOT_CHOICES = ((1, '15 minutes'), (2, '30 minutes (2 slots)'))
 
-# Cabin locations are written "FB3 AB2 : 106": Faculty Block 3 inside Academic Block 2, cabin 106.
-CABIN_PATTERN = re.compile(r'^\s*FB\s*(\d+)\s*AB\s*(\d+)\s*:?\s*(\S+)\s*$', re.IGNORECASE)
+# Cabin locations are written "AB2 FB3 : 106": Academic Block 2, Faculty Block 3 inside it, cabin 106.
+# Parsing also accepts the older "FB3 AB2 : 106" order.
+CABIN_PATTERNS = (
+    re.compile(r'^\s*AB\s*(?P<ab>\d+)\s*FB\s*(?P<fb>\d+)\s*:?\s*(?P<cabin>\S+)\s*$', re.IGNORECASE),
+    re.compile(r'^\s*FB\s*(?P<fb>\d+)\s*AB\s*(?P<ab>\d+)\s*:?\s*(?P<cabin>\S+)\s*$', re.IGNORECASE),
+)
 
 
 def parse_cabin(text):
-    """'FB3 AB2 : 106' -> (academic_block=2, faculty_block=3, cabin='106'), or None if it isn't in that format."""
-    match = CABIN_PATTERN.match(text or '')
-    if not match:
-        return None
-    faculty_block, academic_block, cabin = match.groups()
-    return int(academic_block), int(faculty_block), cabin.upper()
+    """'AB2 FB3 : 106' (or 'FB3 AB2 : 106') -> (academic_block=2, faculty_block=3, cabin='106'), else None."""
+    for pattern in CABIN_PATTERNS:
+        match = pattern.match(text or '')
+        if match:
+            return int(match['ab']), int(match['fb']), match['cabin'].upper()
+    return None
 
 
 def format_cabin(academic_block, faculty_block, cabin):
     if academic_block and faculty_block and cabin:
-        return f'FB{faculty_block} AB{academic_block} : {cabin}'
+        return f'AB{academic_block} FB{faculty_block} : {cabin}'
     return cabin or ''
 
 
@@ -47,7 +51,7 @@ AVAILABILITY_CHOICES = (
 class CustomUser(AbstractUser):
     role = models.CharField(max_length=20, choices=USER_ROLES)
     availability_status = models.CharField(max_length=20, choices=AVAILABILITY_CHOICES, default='Unavailable')
-    # Cabin location, displayed as "FB<faculty_block> AB<academic_block> : <cabin>".
+    # Cabin location, displayed as "AB<academic_block> FB<faculty_block> : <cabin>".
     academic_block = models.PositiveSmallIntegerField(null=True, blank=True)
     faculty_block = models.PositiveSmallIntegerField(null=True, blank=True)
     cabin = models.CharField('cabin number', max_length=10, blank=True, default='')
@@ -165,7 +169,7 @@ class FacultyBlock(models.Model):
         constraints = [models.UniqueConstraint(fields=['academic_block', 'number'], name='unique_faculty_block')]
 
     def __str__(self):
-        return f'FB{self.number} AB{self.academic_block.number}'
+        return f'AB{self.academic_block.number} FB{self.number}'
 
     @property
     def floor_label(self):
