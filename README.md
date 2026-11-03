@@ -11,10 +11,14 @@ EduAccess is a full-stack web platform designed to streamline faculty-student in
 - 👨‍🏫 **Professor Dashboard**:  
   - Update availability status (Free, Busy, Unavailable)  
   - View and manage appointment requests
+  - Set walk-in **open time** for today; students see it immediately and can't book inside it
+  - Set the cabin on first login (required before anything else), change it later from the Cabin pop-up
 - 🎓 **Student Dashboard**:  
   - Keep a "My professors" list (search everyone, ☆ add) with live availability  
-  - Book appointments by selecting date & time  
-  - Search professor cabin locations
+  - Book 15-minute slots (or two for 30 minutes); a slot is booked once the professor accepts, and overlapping requests are declined automatically
+  - Search professors by name or cabin
+- 📍 **Cabin directions**: Cabins are written `AB2 FB3 : 106` (Academic Block 2, Faculty Block 3, cabin 106). Each one links to a shareable directions page: Google Maps walking directions to the block, then written steps inside (floor and directions are optional per faculty block), with a WhatsApp share and a Back button.
+- 🧹 **Clutter-free dashboards**: only My Professors, My Appointments and Notifications on the page; find and book open as pop-ups.
 - 🔔 **Notifications**: Professors are notified of new requests; students are notified when a request is confirmed or cancelled.
 - ♻️ **Auto Refresh**: Dashboards auto-update availability every 10 seconds.
 - 🎨 **Responsive UI**: Clean, modern interface with background blur, animations, and dropdown interactions.
@@ -29,7 +33,7 @@ EduAccess is a full-stack web platform designed to streamline faculty-student in
 | Backend      | Django 6.1, Django REST Framework |
 | Database     | PostgreSQL                     |
 | Real-time    | JavaScript polling (setInterval) |
-| Deployment   | (Planned) Docker + Heroku/Render |
+| Deployment   | Docker Compose, auto-deployed from CI on every push to `main` |
 
 ---
 
@@ -38,16 +42,16 @@ EduAccess is a full-stack web platform designed to streamline faculty-student in
 ```bash
 EduAccess/
 ├── api/                     # Django App
-│   ├── models.py            # User, Appointment, Notification
+│   ├── models.py            # User, Appointment, OpenTime, MyProfessor, campus blocks, Notification
 │   ├── views.py             # REST APIs
 │   ├── serializers.py
 │   ├── urls.py
 ├── eduaccess_backend/      # Django Project settings
 ├── frontend/
-│   ├── templates/           # HTML Files (index, student-dashboard, professor-dashboard)
+│   ├── templates/           # HTML pages (login, sign-up, dashboards, cabin, directions)
 │   ├── static/
-│   │   ├── js/script.js     # Frontend logic & AJAX
-│   │   ├── css/styles.css   # Custom styling
+│   │   ├── script.js        # Dashboard logic & API calls
+│   │   ├── styles.css       # Custom styling
 │   │   └── assets/          # Logo and background images
 ├── manage.py
 ├── README.md                # This file

@@ -42,9 +42,9 @@
     "semantic_hash": "d41d8cd98f00b204e9800998ecf8427e"
   },
   "api/models.py": {
-    "mtime": 1793684776.6577985,
-    "seen": 1793688640.923352,
-    "ast_hash": "6ed081de37560c3dc81c233347479734",
+    "mtime": 1793690682.3151145,
+    "seen": 1793690816.1012192,
+    "ast_hash": "81ad37c940de69d3f0af4be509f3baad",
     "semantic_hash": ""
   },
   "api/serializers.py": {
@@ -54,9 +54,9 @@
     "semantic_hash": ""
   },
   "api/tests.py": {
-    "mtime": 1793688383.1585968,
-    "seen": 1793688640.9233558,
-    "ast_hash": "0da9cb49d04aeb9a257cf84d2b7c9c01",
+    "mtime": 1793690692.4975657,
+    "seen": 1793690816.101223,
+    "ast_hash": "143f4b2a57634dcf2574aa1c1c4069bd",
     "semantic_hash": ""
   },
   "api/urls.py": {
@@ -198,9 +198,9 @@
     "semantic_hash": ""
   },
   "CLAUDE.md": {
-    "mtime": 1793688490.5595462,
-    "seen": 1793688640.923384,
-    "ast_hash": "187a755fa20aba1b4b500f5fba227898",
+    "mtime": 1793690813.7783124,
+    "seen": 1793690816.10125,
+    "ast_hash": "a130aa6c6dea1567714e1de5a017c142",
     "semantic_hash": ""
   },
   ".github/workflows/ci.yml": {
@@ -348,9 +348,9 @@
     "semantic_hash": ""
   },
   "frontend/templates/go.html": {
-    "mtime": 1793639508.3791077,
-    "seen": 1793639579.1336792,
-    "ast_hash": "16ce359862428dfc89abcefcb6cd755b",
+    "mtime": 1793690682.3164742,
+    "seen": 1793690816.1012568,
+    "ast_hash": "9fc2179e9417605cd6881dbc9856218e",
     "semantic_hash": ""
   },
   "frontend/static/go.js": {
@@ -366,15 +366,21 @@
     "semantic_hash": ""
   },
   "frontend/templates/cabin-fields.html": {
-    "mtime": 1793684830.406399,
-    "seen": 1793688640.9233909,
-    "ast_hash": "d25c898677bfa649b15879dad0c0c4e8",
+    "mtime": 1793690682.3172278,
+    "seen": 1793690816.101256,
+    "ast_hash": "3dd33b1fee1f41d974ed44266051942b",
     "semantic_hash": ""
   },
   "frontend/templates/professor-cabin.html": {
     "mtime": 1793684830.4091005,
     "seen": 1793688640.9233952,
     "ast_hash": "b56fd62302bec1ee08c27ae795d2d11c",
+    "semantic_hash": ""
+  },
+  "api/migrations/0011_faculty_block_optional_details.py": {
+    "mtime": 1793690692.9602525,
+    "seen": 1793690816.101215,
+    "ast_hash": "f25e16aa9f691eb0bff44f12c36c3914",
     "semantic_hash": ""
   }
 }
