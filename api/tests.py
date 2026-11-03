@@ -723,6 +723,12 @@ class DirectionsTests(BaseTestCase):
         self.assertContains(resp, "aren't written yet")
         self.assertContains(resp, '<strong>cabin 12</strong>')
 
+    def test_faculty_block_without_floor_or_directions(self):
+        FacultyBlock.objects.create(academic_block=self.block, number=5)
+        resp = self.client.get('/go/AB2/FB5/1/')
+        self.assertNotContains(resp, 'go-floor')
+        self.assertContains(resp, "aren't written yet")
+
     def test_ground_floor_label(self):
         FacultyBlock.objects.create(academic_block=self.block, number=4, floor=0, directions='Straight ahead.')
         self.assertContains(self.client.get('/go/AB2/FB4/1/'), 'Ground floor')

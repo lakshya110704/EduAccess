@@ -165,8 +165,8 @@ class FacultyBlock(models.Model):
 
     academic_block = models.ForeignKey(AcademicBlock, on_delete=models.CASCADE, related_name='faculty_blocks')
     number = models.PositiveSmallIntegerField()
-    floor = models.SmallIntegerField(help_text='0 = ground floor.')
-    directions = models.TextField(help_text='How to get here from the academic block entrance or lobby.')
+    floor = models.SmallIntegerField(null=True, blank=True, help_text='0 = ground floor. Leave empty if unknown.')
+    directions = models.TextField(blank=True, help_text='How to get here from the academic block entrance or lobby.')
 
     class Meta:
         ordering = ['academic_block__number', 'number']
@@ -177,6 +177,8 @@ class FacultyBlock(models.Model):
 
     @property
     def floor_label(self):
+        if self.floor is None:
+            return ''
         return 'Ground floor' if self.floor == 0 else f'Floor {self.floor}'
 
 

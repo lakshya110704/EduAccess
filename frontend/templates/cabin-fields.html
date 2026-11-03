@@ -16,7 +16,7 @@
   <select name="faculty_block" id="{{ id_prefix }}-faculty" required data-cabin-faculty>
     <option value="">Choose…</option>
     {% for block in cabin_form.fields.faculty_block.queryset %}
-      <option value="{{ block.id }}" data-academic="{{ block.academic_block_id }}" {% if cabin_form.faculty_block.value|stringformat:"s" == block.id|stringformat:"s" %}selected{% endif %}>{{ block }} · {{ block.floor_label }}</option>
+      <option value="{{ block.id }}" data-academic="{{ block.academic_block_id }}" {% if cabin_form.faculty_block.value|stringformat:"s" == block.id|stringformat:"s" %}selected{% endif %}>{{ block }}{% if block.floor_label %} · {{ block.floor_label }}{% endif %}</option>
     {% endfor %}
   </select>
   {% for error in cabin_form.faculty_block.errors %}<div class="field-error">{{ error }}</div>{% endfor %}

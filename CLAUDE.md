@@ -49,7 +49,8 @@ availability, cabin locator and appointment booking for students and professors.
   (letters/digits/dashes). The same form (`cabin-fields.html`) is the dashboard's Cabin pop-up for changes, which
   apply immediately. With no faculty blocks in the admin, professors can't pass the gate.
 - Cabin directions: `AcademicBlock` (number, entrance lat/lng, optional 360° link) and `FacultyBlock` (academic block,
-  number, floor — a faculty block is on one floor — and free-text directions), edited together in the admin.
+  number, optional floor — a faculty block is on one floor — and optional free-text directions), edited together in
+  the admin; blank floor/directions are hidden or show the "not written yet" fallback.
   `/go/AB<n>/FB<n>/<cabin>/` (`go_view`, `templates/go.html`): Google Maps walking link to the block entrance, 360°
   view, floor + directions, WhatsApp share (`wa.me`). No login and no professor names on the page (safe to share);
   missing data shows a fallback. `directions_url` on `/api/professors/` powers the 📍 Directions links.
