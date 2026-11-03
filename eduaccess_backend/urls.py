@@ -6,6 +6,7 @@ from api.views import (
     go_view,
     login_view,
     logout_view,
+    professor_cabin,
     professor_dashboard,
     signup_done,
     signup_view,
@@ -27,6 +28,7 @@ urlpatterns = [
     path('signup/done/', signup_done, name='signup_done'),
     path('student/', student_dashboard, name='student_dashboard'),
     path('professor/', professor_dashboard, name='professor_dashboard'),
+    path('professor/cabin/', professor_cabin, name='professor_cabin'),
     path('go/AB<int:academic>/FB<int:faculty>/<str:cabin>/', go_view, name='go'),
     path('healthz/', healthz, name='healthz'),
 ]

@@ -693,3 +693,26 @@ table a.action-directions {
   font-weight: bold;
   text-decoration: none;
 }
+
+/* Professor cabin form (first-login page and the dashboard's Cabin pop-up). */
+.cabin-form label {
+  display: block;
+  margin-top: 0.6rem;
+  text-align: left;
+}
+
+.cabin-form select option {
+  color: #222;
+}
+
+.cabin-logout {
+  text-align: center;
+}
+
+.login-container .link-button {
+  width: auto;
+  background: none;
+  color: #ddd;
+  text-decoration: underline;
+  cursor: pointer;
+}

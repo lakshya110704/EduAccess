@@ -7,7 +7,7 @@ availability, cabin locator and appointment booking for students and professors.
 
 - `eduaccess_backend/settings.py` — single settings module, every environment-specific value comes from env vars / `.env` via python-decouple (see `.env.example`). `DJANGO_DEBUG` defaults to off; with it off, `DJANGO_SECRET_KEY` is required and HTTPS/HSTS/secure cookies are on. WhiteNoise serves static files. `DB_ENGINE=sqlite` is for local runs and tests only.
 - `eduaccess_backend/urls.py` — pages (`/`, `/login/`, `/logout/` POST-only, `/student/`, `/professor/`), `/admin/`, `/api/`, `/healthz/`
-- `api/models.py` — `CustomUser` (role, availability_status, cabin_number), `Appointment`, `Notification`
+- `api/models.py` — `CustomUser` (role, availability_status, academic_block/faculty_block/cabin), `Appointment`, `Notification`
 - `api/permissions.py` — `role_required` page decorator, `dashboard_for(user)`, `IsAppointmentParticipant`
 - `api/views.py` — API viewsets + page views. Login has a role dropdown (Student/Professor): it succeeds only if
   the credentials belong to an account **of that role** (the stored role decides, the dropdown only has to
@@ -42,6 +42,12 @@ availability, cabin locator and appointment booking for students and professors.
 
 - Cabin location: `academic_block`, `faculty_block`, `cabin` → `cabin_label` "AB2 FB3 : 106" (Faculty Block 3 in
   Academic Block 2, cabin 106); `parse_cabin`/`format_cabin` in `api/models.py`. Search understands `FB3`, `AB2`, room.
+- Cabin gate: a professor without a complete cabin (`has_cabin`) is redirected from `/professor/` to `/professor/cabin/`
+  (`professor_cabin`, `templates/professor-cabin.html`) and every professor API write returns 403 (`ProfessorHasCabin`,
+  a default DRF permission). `CabinForm` uses dropdowns of the admin's `AcademicBlock`/`FacultyBlock` rows (the
+  faculty block must be in the chosen academic block; `cabin.js` filters the list) plus a cabin number
+  (letters/digits/dashes). The same form (`cabin-fields.html`) is the dashboard's Cabin pop-up for changes, which
+  apply immediately. With no faculty blocks in the admin, professors can't pass the gate.
 - Cabin directions: `AcademicBlock` (number, entrance lat/lng, optional 360° link) and `FacultyBlock` (academic block,
   number, floor — a faculty block is on one floor — and free-text directions), edited together in the admin.
   `/go/AB<n>/FB<n>/<cabin>/` (`go_view`, `templates/go.html`): Google Maps walking link to the block entrance, 360°

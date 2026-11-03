@@ -36,3 +36,13 @@ class IsAppointmentParticipant(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
         user = request.user
         return user.is_staff or obj.student_id == user.id or obj.professor_id == user.id
+
+
+class ProfessorHasCabin(permissions.BasePermission):
+    """Professors can't change anything until they've set their cabin (the first-login gate)."""
+
+    message = 'Set your cabin location first.'
+
+    def has_permission(self, request, view):
+        user = request.user
+        return request.method in permissions.SAFE_METHODS or user.role != 'professor' or user.has_cabin

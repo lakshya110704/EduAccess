@@ -1,0 +1,30 @@
+{# Cabin location fields, shared by the first-login page and the dashboard's Cabin pop-up. #}
+<form method="post" action="{% url 'professor_cabin' %}" class="cabin-form" data-cabin-form novalidate>
+  {% csrf_token %}
+  {% for error in cabin_form.non_field_errors %}<div class="field-error">{{ error }}</div>{% endfor %}
+
+  <label for="{{ id_prefix }}-academic">Academic block</label>
+  <select name="academic_block" id="{{ id_prefix }}-academic" required data-cabin-academic>
+    <option value="">Choose…</option>
+    {% for block in cabin_form.fields.academic_block.queryset %}
+      <option value="{{ block.id }}" {% if cabin_form.academic_block.value|stringformat:"s" == block.id|stringformat:"s" %}selected{% endif %}>AB{{ block.number }}{% if block.name %} – {{ block.name }}{% endif %}</option>
+    {% endfor %}
+  </select>
+  {% for error in cabin_form.academic_block.errors %}<div class="field-error">{{ error }}</div>{% endfor %}
+
+  <label for="{{ id_prefix }}-faculty">Faculty block</label>
+  <select name="faculty_block" id="{{ id_prefix }}-faculty" required data-cabin-faculty>
+    <option value="">Choose…</option>
+    {% for block in cabin_form.fields.faculty_block.queryset %}
+      <option value="{{ block.id }}" data-academic="{{ block.academic_block_id }}" {% if cabin_form.faculty_block.value|stringformat:"s" == block.id|stringformat:"s" %}selected{% endif %}>{{ block }} · {{ block.floor_label }}</option>
+    {% endfor %}
+  </select>
+  {% for error in cabin_form.faculty_block.errors %}<div class="field-error">{{ error }}</div>{% endfor %}
+
+  <label for="{{ id_prefix }}-cabin">Cabin number</label>
+  <input type="text" name="cabin" id="{{ id_prefix }}-cabin" maxlength="10" placeholder="e.g. 106" required
+         value="{{ cabin_form.cabin.value|default:'' }}" autocomplete="off">
+  {% for error in cabin_form.cabin.errors %}<div class="field-error">{{ error }}</div>{% endfor %}
+
+  <button type="submit"><i class="fas fa-check"></i> Save cabin</button>
+</form>

@@ -93,9 +93,13 @@ class CustomUser(AbstractUser):
         return format_cabin(self.academic_block, self.faculty_block, self.cabin)
 
     @property
+    def has_cabin(self):
+        return bool(self.academic_block and self.faculty_block and self.cabin)
+
+    @property
     def directions_path(self):
         """Path of the cabin directions page, or '' if the cabin location is incomplete."""
-        if self.academic_block and self.faculty_block and self.cabin:
+        if self.has_cabin:
             return f'/go/AB{self.academic_block}/FB{self.faculty_block}/{self.cabin}/'
         return ''
 

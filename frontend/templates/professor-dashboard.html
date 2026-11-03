@@ -8,6 +8,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
   <link rel="stylesheet" href="{% static 'styles.css' %}">
   <script src="{% static 'script.js' %}" defer></script>
+  <script src="{% static 'cabin.js' %}" defer></script>
 </head>
 <body class="dashboard-body" data-page="professor" data-theme="professor">
 
@@ -28,13 +29,14 @@
         <label for="status-unavailable">Unavailable</label>
       </fieldset>
       <button type="button" class="header-btn" data-open-dialog="open-time-dialog"><i class="fas fa-door-open"></i> Open time</button>
+      <button type="button" class="header-btn" data-open-dialog="cabin-dialog"><i class="fas fa-location-dot"></i> Cabin</button>
       <form method="post" action="{% url 'logout' %}" class="logout-form">
         {% csrf_token %}
         <button type="submit"><i class="fas fa-sign-out-alt"></i> Log out</button>
       </form>
     </div>
   </header>
-  <div id="availability-message" class="flash form-message header-toast" role="status"></div>
+  <div id="availability-message" class="flash form-message header-toast{% for message in messages %} flash-{{ message.tags }}{% endfor %}" role="status">{% for message in messages %}{{ message }}{% endfor %}</div>
 
   <main class="dashboard">
 
@@ -69,6 +71,15 @@
       <thead><tr><th>Walk-in window</th><th>Action</th></tr></thead>
       <tbody id="open-time-table"></tbody>
     </table>
+  </dialog>
+
+  <dialog id="cabin-dialog" class="panel" aria-labelledby="cabin-title">
+    <div class="panel-head">
+      <h3 id="cabin-title"><i class="fas fa-location-dot"></i> Your Cabin</h3>
+      <button type="button" class="panel-close" data-close-dialog aria-label="Close">✕</button>
+    </div>
+    <p>Currently <strong>{{ request.user.cabin_label }}</strong>. Students see the change right away.</p>
+    {% include "cabin-fields.html" with id_prefix="cabin-dialog" %}
   </dialog>
 </body>
 </html>

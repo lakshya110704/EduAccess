@@ -17,7 +17,7 @@ from rest_framework.exceptions import PermissionDenied, ValidationError
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
-from .forms import SignupForm
+from .forms import CabinForm, SignupForm
 from .models import (
     AcademicBlock,
     Appointment,
@@ -28,7 +28,7 @@ from .models import (
     OpenTime,
     format_cabin,
 )
-from .permissions import IsAppointmentParticipant, dashboard_for, role_required
+from .permissions import IsAppointmentParticipant, ProfessorHasCabin, dashboard_for, role_required
 from .serializers import (
     AppointmentSerializer,
     AppointmentStatusSerializer,
@@ -58,7 +58,7 @@ class AppointmentViewSet(
     """Students book; professors confirm or cancel; students can cancel their own.
     Appointments are never deleted, only cancelled."""
 
-    permission_classes = [IsAuthenticated, IsAppointmentParticipant]
+    permission_classes = [IsAuthenticated, ProfessorHasCabin, IsAppointmentParticipant]
     filter_backends = [DjangoFilterBackend, filters.OrderingFilter]
     filterset_fields = ['status']
     ordering_fields = ['appointment_time']
@@ -365,4 +365,25 @@ def student_dashboard(request):
 
 @role_required('professor')
 def professor_dashboard(request):
-    return render(request, 'professor-dashboard.html')
+    if not request.user.has_cabin:
+        return redirect('professor_cabin')
+    return render(request, 'professor-dashboard.html', {'cabin_form': _cabin_form(request.user)})
+
+
+def _cabin_form(user, data=None):
+    initial = {'cabin': user.cabin}
+    faculty = FacultyBlock.objects.filter(academic_block__number=user.academic_block, number=user.faculty_block).first()
+    if faculty:
+        initial.update(academic_block=faculty.academic_block_id, faculty_block=faculty.id)
+    return CabinForm(data, initial=initial)
+
+
+@role_required('professor')
+def professor_cabin(request):
+    """Set or change the cabin. Professors without one are sent here and can't use the dashboard until they save."""
+    form = _cabin_form(request.user, request.POST or None)
+    if request.method == 'POST' and form.is_valid():
+        form.save(request.user)
+        messages.success(request, f'Cabin saved: {request.user.cabin_label}.')
+        return redirect('professor_dashboard')
+    return render(request, 'professor-cabin.html', {'cabin_form': form, 'first_time': not request.user.has_cabin})

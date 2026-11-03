@@ -54,9 +54,9 @@
     "semantic_hash": ""
   },
   "api/tests.py": {
-    "mtime": 1793639207.7541747,
-    "seen": 1793639328.518681,
-    "ast_hash": "84f4456c3323ed86b7de0d26682e8a69",
+    "mtime": 1793639526.8104784,
+    "seen": 1793639579.133653,
+    "ast_hash": "ed574a9e4784b85e35c775be0c8faa19",
     "semantic_hash": ""
   },
   "api/urls.py": {
@@ -102,9 +102,9 @@
     "semantic_hash": "f932e5c6e833b9c4e996281520c715f5"
   },
   "frontend/static/script.js": {
-    "mtime": 1793637036.2810822,
-    "seen": 1793637400.01942,
-    "ast_hash": "07dfce7601ae9b17090cc6d1cfd78701",
+    "mtime": 1793639508.3802156,
+    "seen": 1793639579.133667,
+    "ast_hash": "7bc878d0df1efb5724c8a97b506bf4f9",
     "semantic_hash": ""
   },
   "manage.py": {
@@ -348,9 +348,15 @@
     "semantic_hash": ""
   },
   "frontend/templates/go.html": {
-    "mtime": 1793637016.5183744,
-    "seen": 1793637400.0194292,
-    "ast_hash": "67331993f7eeb03c20b785ddb7eba101",
+    "mtime": 1793639508.3791077,
+    "seen": 1793639579.1336792,
+    "ast_hash": "16ce359862428dfc89abcefcb6cd755b",
+    "semantic_hash": ""
+  },
+  "frontend/static/go.js": {
+    "mtime": 1793639508.0976942,
+    "seen": 1793639579.133665,
+    "ast_hash": "430d2dda333d2af37549bd77442562a2",
     "semantic_hash": ""
   }
 }

@@ -1,8 +1,10 @@
+import re
+
 from django import forms
 from django.conf import settings
 from django.contrib.auth.forms import UserCreationForm
 
-from .models import CustomUser
+from .models import AcademicBlock, CustomUser, FacultyBlock
 
 SIGNUP_ROLES = [('student', 'Student'), ('professor', 'Professor')]
 COLLEGE_ID_LABELS = {'student': 'roll number', 'professor': 'employee ID'}
@@ -51,3 +53,39 @@ class SignupForm(UserCreationForm):
         if commit:
             user.save()
         return user
+
+
+CABIN_NUMBER = re.compile(r'^[A-Z0-9-]{1,10}$')
+
+
+class CabinForm(forms.Form):
+    """A professor's cabin location, picked from the blocks set up in the admin so directions always work.
+    The page's JavaScript only filters the faculty block list to the chosen academic block."""
+
+    academic_block = forms.ModelChoiceField(
+        queryset=AcademicBlock.objects.filter(faculty_blocks__isnull=False).distinct(),
+        empty_label='Academic block',
+    )
+    faculty_block = forms.ModelChoiceField(
+        queryset=FacultyBlock.objects.select_related('academic_block'), empty_label='Faculty block'
+    )
+    cabin = forms.CharField(max_length=10, label='Cabin number')
+
+    def clean_cabin(self):
+        cabin = self.cleaned_data['cabin'].strip().upper()
+        if not CABIN_NUMBER.match(cabin):
+            raise forms.ValidationError('Use letters, digits and dashes only, e.g. 106 or G-12.')
+        return cabin
+
+    def clean(self):
+        cleaned = super().clean()
+        academic, faculty = cleaned.get('academic_block'), cleaned.get('faculty_block')
+        if academic and faculty and faculty.academic_block_id != academic.id:
+            self.add_error('faculty_block', f'That faculty block is not in {academic}.')
+        return cleaned
+
+    def save(self, user):
+        user.academic_block = self.cleaned_data['academic_block'].number
+        user.faculty_block = self.cleaned_data['faculty_block'].number
+        user.cabin = self.cleaned_data['cabin']
+        user.save(update_fields=['academic_block', 'faculty_block', 'cabin'])

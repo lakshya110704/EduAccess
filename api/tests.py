@@ -177,6 +177,7 @@ class AppointmentAccessTests(BaseTestCase):
         self.assertEqual(self.patch(self.prof, 'Confirmed').status_code, 400)
 
     def test_other_users_cannot_touch_it(self):
+        self.other_prof.academic_block, self.other_prof.faculty_block, self.other_prof.cabin = 1, 1, '9'
         self.assertEqual(self.patch(self.other_prof, 'Confirmed').status_code, 404)
         self.assertEqual(self.patch(self.other_student, 'Cancelled').status_code, 404)
 
@@ -629,6 +630,7 @@ class OpenTimeTests(BaseTestCase):
         self.assertContains(resp, 'open (walk-in) time', status_code=400)
 
     def test_professor_lists_and_removes_own_windows(self):
+        self.other_prof.academic_block, self.other_prof.faculty_block, self.other_prof.cabin = 1, 1, '9'
         window_id = self.add().json()['id']
         self.assertEqual(len(self.as_user(self.prof).get('/api/open-times/').json()), 1)
         self.assertEqual(self.as_user(self.other_prof).delete(f'/api/open-times/{window_id}/').status_code, 404)
@@ -738,3 +740,84 @@ class DirectionsTests(BaseTestCase):
         self.client.force_login(admin_user)
         resp = self.client.get(f'/admin/api/academicblock/{self.block.id}/change/')
         self.assertContains(resp, 'faculty_blocks-0-directions')
+
+
+class CabinGateTests(BaseTestCase):
+    """First login: a professor without a cabin can't use the dashboard or change anything until they set one."""
+
+    def setUp(self):
+        super().setUp()
+        self.ab2 = AcademicBlock.objects.create(number=2)
+        self.ab3 = AcademicBlock.objects.create(number=3)
+        self.fb3 = FacultyBlock.objects.create(academic_block=self.ab2, number=3, floor=1, directions='Left wing.')
+        self.fb1 = FacultyBlock.objects.create(academic_block=self.ab3, number=1, floor=0, directions='Lobby.')
+
+    def save_cabin(self, user, academic, faculty, cabin):
+        self.client.force_login(user)
+        return self.client.post(
+            '/professor/cabin/', {'academic_block': academic, 'faculty_block': faculty, 'cabin': cabin}
+        )
+
+    def test_professor_without_cabin_is_sent_to_cabin_page(self):
+        self.client.force_login(self.other_prof)
+        self.assertRedirects(self.client.get('/professor/'), '/professor/cabin/', fetch_redirect_response=False)
+        resp = self.client.get('/professor/cabin/')
+        self.assertContains(resp, "Where's your cabin?")
+        self.assertContains(resp, f'data-academic="{self.ab2.id}"')
+        self.assertNotContains(resp, 'class="go-back"')  # nowhere to go back to yet
+
+    def test_saving_cabin_unlocks_dashboard(self):
+        resp = self.save_cabin(self.other_prof, self.ab2.id, self.fb3.id, ' g-12 ')
+        self.assertRedirects(resp, '/professor/', fetch_redirect_response=False)
+        self.other_prof.refresh_from_db()
+        self.assertEqual(self.other_prof.cabin_label, 'AB2 FB3 : G-12')
+        resp = self.client.get('/professor/')
+        self.assertContains(resp, 'Cabin saved: AB2 FB3 : G-12.')
+        self.assertContains(resp, 'id="cabin-dialog"')
+
+    def test_faculty_block_must_be_in_academic_block(self):
+        resp = self.save_cabin(self.other_prof, self.ab2.id, self.fb1.id, '106')
+        self.assertContains(resp, 'That faculty block is not in Academic Block 2.')
+        self.other_prof.refresh_from_db()
+        self.assertFalse(self.other_prof.has_cabin)
+
+    def test_cabin_number_is_checked(self):
+        self.assertContains(
+            self.save_cabin(self.other_prof, self.ab2.id, self.fb3.id, '1/06'), 'letters, digits and dashes'
+        )
+        self.assertContains(self.save_cabin(self.other_prof, self.ab2.id, self.fb3.id, ''), 'This field is required.')
+
+    def test_api_writes_are_blocked_until_cabin_is_set(self):
+        client = self.as_user(self.other_prof)
+        self.assertEqual(client.get('/api/me/').status_code, 200)
+        resp = client.patch('/api/me/', {'availability_status': 'Busy'}, format='json')
+        self.assertEqual(resp.status_code, 403)
+        self.assertEqual(resp.json()['detail'], 'Set your cabin location first.')
+        self.assertEqual(client.post('/api/open-times/', {}, format='json').status_code, 403)
+
+    def test_students_are_not_gated(self):
+        resp = self.as_user(self.student).post(
+            '/api/appointments/',
+            {'professor': self.prof.id, 'appointment_time': self.future.isoformat()},
+            format='json',
+        )
+        self.assertEqual(resp.status_code, 201)
+
+    def test_professor_with_cabin_can_change_it_from_dashboard(self):
+        self.client.force_login(self.prof)
+        resp = self.client.get('/professor/')
+        self.assertContains(resp, 'data-open-dialog="cabin-dialog"')
+        self.assertContains(resp, f'<option value="{self.fb3.id}" data-academic="{self.ab2.id}" selected>')
+        self.assertContains(self.client.get('/professor/cabin/'), 'class="go-back"')
+        self.save_cabin(self.prof, self.ab3.id, self.fb1.id, '7')
+        self.prof.refresh_from_db()
+        self.assertEqual(self.prof.cabin_label, 'AB3 FB1 : 7')
+
+    def test_no_blocks_set_up_yet(self):
+        FacultyBlock.objects.all().delete()
+        self.client.force_login(self.other_prof)
+        self.assertContains(self.client.get('/professor/cabin/'), 'No campus blocks are set up yet.')
+
+    def test_students_cannot_open_cabin_page(self):
+        self.client.force_login(self.student)
+        self.assertEqual(self.client.get('/professor/cabin/').status_code, 403)
