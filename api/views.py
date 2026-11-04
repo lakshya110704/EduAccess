@@ -31,7 +31,7 @@ from .models import (
 from .permissions import IsAppointmentParticipant, ProfessorHasCabin, dashboard_for, role_required
 from .serializers import (
     AppointmentSerializer,
-    AppointmentStatusSerializer,
+    AppointmentUpdateSerializer,
     MeSerializer,
     NotificationSerializer,
     OpenTimeSerializer,
@@ -41,6 +41,10 @@ from .serializers import (
 
 def _name(user):
     return user.get_full_name() or user.username
+
+
+def _reason(appt):
+    return f'{appt.topic} – {appt.details}' if appt.details else appt.topic
 
 
 def _when(appt):
@@ -77,7 +81,7 @@ class AppointmentViewSet(
 
     def get_serializer_class(self):
         if self.action in ('update', 'partial_update'):
-            return AppointmentStatusSerializer
+            return AppointmentUpdateSerializer
         return AppointmentSerializer
 
     @transaction.atomic
@@ -88,14 +92,21 @@ class AppointmentViewSet(
         appt = serializer.save(student=user)
         Notification.objects.create(
             user=appt.professor,
-            message=f'New appointment request from {_name(user)} for {_when(appt)}.',
+            message=f'New appointment request from {_name(user)} for {_when(appt)}: {_reason(appt)}',
         )
 
     def perform_update(self, serializer):
         actor = self.request.user
+        status_changed = 'status' in serializer.validated_data
         try:
             with transaction.atomic():
                 appt = serializer.save()
+                if not status_changed:
+                    Notification.objects.create(
+                        user=appt.professor,
+                        message=f'{_name(actor)} updated their request for {_when(appt)}: {_reason(appt)}',
+                    )
+                    return
                 if appt.status == 'Confirmed':
                     self._decline_overlapping_requests(appt)
                 recipient = appt.professor if actor == appt.student else appt.student
@@ -360,7 +371,11 @@ def logout_view(request):
 
 @role_required('student')
 def student_dashboard(request):
-    return render(request, 'student-dashboard.html')
+    return render(
+        request,
+        'student-dashboard.html',
+        {'topics': Appointment.TOPIC_CHOICES, 'details_max': Appointment.DETAILS_MAX_LENGTH},
+    )
 
 
 @role_required('professor')

@@ -44,7 +44,7 @@
     <section id="my-appointments">
       <h3><i class="fas fa-calendar-alt"></i> My Appointments</h3>
       <table>
-        <thead><tr><th>Professor</th><th>Time</th><th>Status</th><th>Action</th></tr></thead>
+        <thead><tr><th>Professor</th><th>Time</th><th>Reason</th><th>Status</th><th>Action</th></tr></thead>
         <tbody id="student-appointment-table"></tbody>
       </table>
     </section>
@@ -90,8 +90,23 @@
           <option value="2">30 minutes (2 slots)</option>
         </select>
       </label>
+      {% include "reason-fields.html" with prefix="appointment" %}
       <button type="submit"><i class="fas fa-check-circle"></i> Request appointment</button>
       <div id="appointment-message" class="flash form-message" role="status"></div>
+    </form>
+  </dialog>
+
+  <dialog id="reason-dialog" class="panel" aria-labelledby="reason-title">
+    <div class="panel-head">
+      <h3 id="reason-title"><i class="fas fa-pen"></i> Edit Reason</h3>
+      <button type="button" class="panel-close" data-close-dialog aria-label="Close">✕</button>
+    </div>
+    <p>You can change this until the professor confirms.</p>
+    <form id="reason-form">
+      <input type="hidden" id="reason-appointment">
+      {% include "reason-fields.html" with prefix="reason" %}
+      <button type="submit"><i class="fas fa-check"></i> Save</button>
+      <div id="reason-message" class="flash form-message" role="status"></div>
     </form>
   </dialog>
 </body>

@@ -105,6 +105,12 @@ function actionButton(label, className, onClick) {
   return button;
 }
 
+function reasonCell(a) {
+  const cell = el("td", {}, [el("strong", { text: a.topic })]);
+  if (a.details) cell.appendChild(el("div", { text: a.details, className: "reason-details" }));
+  return cell;
+}
+
 async function loadAppointments() {
   const isProfessor = PAGE === "professor";
   const tbody = document.getElementById(isProfessor ? "professor-appointment-table" : "student-appointment-table");
@@ -112,7 +118,7 @@ async function loadAppointments() {
   try {
     const appts = rows(await api("/appointments/"));
     if (!appts.length) {
-      emptyRow(tbody, 4, "No appointments yet.");
+      emptyRow(tbody, 5, "No appointments yet.");
       return;
     }
     tbody.replaceChildren(
@@ -124,11 +130,15 @@ async function loadAppointments() {
               actionButton("Confirm", "action-confirm", () => setAppointmentStatus(a.id, "Confirmed")),
             );
           }
+          if (!isProfessor && a.status === "Pending") {
+            actions.appendChild(actionButton("Edit", "action-edit", async () => editReason(a)));
+          }
           actions.appendChild(actionButton("Cancel", "action-cancel", () => setAppointmentStatus(a.id, "Cancelled")));
         }
         return el("tr", {}, [
           el("td", { text: isProfessor ? a.student_name : a.professor_name }),
           el("td", { text: formatRange(a.appointment_time, a.end_time) }),
+          reasonCell(a),
           el("td", { text: a.status, className: `status-${a.status.toLowerCase()}` }),
           actions,
         ]);
@@ -289,6 +299,8 @@ async function submitAppointment(event) {
         professor: Number(professor),
         appointment_time: new Date(datetime).toISOString(),
         slots: Number(document.getElementById("appointment-slots").value),
+        topic: document.getElementById("appointment-topic").value,
+        details: document.getElementById("appointment-details").value.trim(),
       },
     });
     showMessage("appointment-message", "Appointment requested. You'll be notified when the professor responds.");
@@ -301,6 +313,35 @@ async function submitAppointment(event) {
     }, 1500);
   } catch (error) {
     showMessage("appointment-message", error.message, "error");
+  } finally {
+    if (button) button.disabled = false;
+  }
+}
+
+function editReason(appt) {
+  document.getElementById("reason-appointment").value = appt.id;
+  document.getElementById("reason-topic").value = appt.topic;
+  document.getElementById("reason-details").value = appt.details;
+  showMessage("reason-message", "", "success");
+  openDialog("reason-dialog");
+}
+
+async function saveReason(event) {
+  event.preventDefault();
+  const button = event.submitter;
+  if (button) button.disabled = true;
+  try {
+    await api(`/appointments/${document.getElementById("reason-appointment").value}/`, {
+      method: "PATCH",
+      body: {
+        topic: document.getElementById("reason-topic").value,
+        details: document.getElementById("reason-details").value.trim(),
+      },
+    });
+    document.getElementById("reason-dialog").close();
+    loadAppointments();
+  } catch (error) {
+    showMessage("reason-message", error.message, "error");
   } finally {
     if (button) button.disabled = false;
   }
@@ -423,6 +464,7 @@ window.addEventListener("DOMContentLoaded", () => {
     const minTime = new Date(next - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16);
     document.getElementById("appointment-datetime").min = minTime;
     document.getElementById("appointment-form").addEventListener("submit", submitAppointment);
+    document.getElementById("reason-form").addEventListener("submit", saveReason);
     document.getElementById("search-form").addEventListener("submit", searchProfessors);
   }
   if (PAGE === "professor") {

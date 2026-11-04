@@ -307,6 +307,7 @@ table button:hover {
 
 table button.action-confirm,
 table button.action-cancel,
+table button.action-edit,
 table button.action-add,
 table button.action-added {
   width: auto;
@@ -318,6 +319,7 @@ table button.action-added {
 
 table button.action-confirm { background: var(--accent); }
 table button.action-cancel { background: rgba(239, 83, 80, 0.7); }
+table button.action-edit { background: rgba(255, 255, 255, 0.25); margin-right: 0.3rem; }
 
 .radio-row label {
   display: inline-flex;
@@ -715,4 +717,29 @@ table a.action-directions {
   color: #ddd;
   text-decoration: underline;
   cursor: pointer;
+}
+
+/* Appointment reason: category in bold, the optional note underneath. */
+.reason-details {
+  font-size: 0.85rem;
+  color: #ddd;
+  max-width: 22rem;
+  overflow-wrap: anywhere;
+}
+
+dialog.panel textarea {
+  box-sizing: border-box;
+  width: 100%;
+  margin-top: 10px;
+  padding: 0.8rem;
+  border: none;
+  border-radius: 6px;
+  font: inherit;
+  background-color: rgba(255, 255, 255, 0.1);
+  color: white;
+  resize: vertical;
+}
+
+dialog.panel textarea::placeholder {
+  color: #ccc;
 }

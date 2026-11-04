@@ -42,6 +42,7 @@ class BaseTestCase(TestCase):
 
     def book(self, student=None, professor=None, when=None, slots=1, status='Pending'):
         return Appointment.objects.create(
+            topic='Doubt',
             student=student or self.student,
             professor=professor or self.prof,
             appointment_time=when or self.future,
@@ -99,7 +100,7 @@ class MeTests(BaseTestCase):
 
 class BookingTests(BaseTestCase):
     def post(self, user, **data):
-        payload = {'professor': self.prof.id, 'appointment_time': self.future.isoformat()}
+        payload = {'professor': self.prof.id, 'appointment_time': self.future.isoformat(), 'topic': 'Doubt'}
         payload.update(data)
         return self.as_user(user).post('/api/appointments/', payload, format='json')
 
@@ -506,7 +507,7 @@ class MyProfessorTests(BaseTestCase):
     def test_can_book_a_professor_not_in_my_list(self):
         resp = self.as_user(self.student).post(
             '/api/appointments/',
-            {'professor': self.other_prof.id, 'appointment_time': self.future.isoformat()},
+            {'professor': self.other_prof.id, 'appointment_time': self.future.isoformat(), 'topic': 'Doubt'},
             format='json',
         )
         self.assertEqual(resp.status_code, 201, resp.content)
@@ -516,7 +517,7 @@ class BookingRuleTests(BaseTestCase):
     def post(self, when, slots=1, student=None):
         return self.as_user(student or self.student).post(
             '/api/appointments/',
-            {'professor': self.prof.id, 'appointment_time': when.isoformat(), 'slots': slots},
+            {'professor': self.prof.id, 'appointment_time': when.isoformat(), 'slots': slots, 'topic': 'Doubt'},
             format='json',
         )
 
@@ -624,7 +625,7 @@ class OpenTimeTests(BaseTestCase):
         self.add()
         resp = self.as_user(self.student).post(
             '/api/appointments/',
-            {'professor': self.prof.id, 'appointment_time': self.open_start.isoformat()},
+            {'professor': self.prof.id, 'appointment_time': self.open_start.isoformat(), 'topic': 'Doubt'},
             format='json',
         )
         self.assertContains(resp, 'open (walk-in) time', status_code=400)
@@ -804,7 +805,7 @@ class CabinGateTests(BaseTestCase):
     def test_students_are_not_gated(self):
         resp = self.as_user(self.student).post(
             '/api/appointments/',
-            {'professor': self.prof.id, 'appointment_time': self.future.isoformat()},
+            {'professor': self.prof.id, 'appointment_time': self.future.isoformat(), 'topic': 'Doubt'},
             format='json',
         )
         self.assertEqual(resp.status_code, 201)
@@ -827,3 +828,55 @@ class CabinGateTests(BaseTestCase):
     def test_students_cannot_open_cabin_page(self):
         self.client.force_login(self.student)
         self.assertEqual(self.client.get('/professor/cabin/').status_code, 403)
+
+
+class AppointmentReasonTests(BaseTestCase):
+    """Every request says why (category required, note optional, max 200); editable only while pending."""
+
+    def request(self, **data):
+        payload = {'professor': self.prof.id, 'appointment_time': self.future.isoformat(), **data}
+        return self.as_user(self.student).post('/api/appointments/', payload, format='json')
+
+    def edit(self, appt, user=None, **data):
+        return self.as_user(user or self.student).patch(f'/api/appointments/{appt.id}/', data, format='json')
+
+    def test_category_is_required(self):
+        self.assertContains(self.request(), 'topic', status_code=400)
+        self.assertContains(self.request(topic='Gossip'), 'not a valid choice', status_code=400)
+
+    def test_reason_is_saved_and_sent_to_professor(self):
+        resp = self.request(topic='Project', details='Review of my mini-project report')
+        self.assertEqual(resp.status_code, 201, resp.content)
+        self.assertEqual(resp.json()['topic'], 'Project')
+        self.assertIn('Project – Review of my mini-project report', Notification.objects.get(user=self.prof).message)
+        appt = self.as_user(self.prof).get('/api/appointments/').json()[0]
+        self.assertEqual((appt['topic'], appt['details']), ('Project', 'Review of my mini-project report'))
+
+    def test_details_are_optional_and_capped(self):
+        self.assertEqual(self.request(topic='Marks').status_code, 201)
+        self.assertContains(self.request(topic='Marks', details='x' * 201), '200 characters', status_code=400)
+
+    def test_student_edits_pending_request_and_professor_is_told(self):
+        appt = self.book()
+        resp = self.edit(appt, topic='Attendance', details='Missed two labs')
+        self.assertEqual(resp.status_code, 200, resp.content)
+        appt.refresh_from_db()
+        self.assertEqual((appt.topic, appt.details, appt.status), ('Attendance', 'Missed two labs', 'Pending'))
+        self.assertIn('updated their request', Notification.objects.get(user=self.prof).message)
+
+    def test_no_edits_after_confirmation_or_cancellation(self):
+        for status in ('Confirmed', 'Cancelled'):
+            appt = self.book(status=status, when=self.future + timedelta(hours=len(status)))
+            self.assertContains(self.edit(appt, details='late change'), 'only be changed while', status_code=400)
+
+    def test_only_the_student_edits_the_reason(self):
+        appt = self.book()
+        self.assertContains(self.edit(appt, user=self.prof, topic='Other'), 'Only the student', status_code=400)
+
+    def test_dashboard_has_reason_fields_and_edit_dialog(self):
+        self.client.force_login(self.student)
+        resp = self.client.get('/student/')
+        self.assertContains(resp, 'id="appointment-topic"')
+        self.assertContains(resp, '<option value="Attendance">Attendance</option>')
+        self.assertContains(resp, 'id="reason-dialog"')
+        self.assertContains(resp, 'maxlength="200"')

@@ -85,5 +85,12 @@ class AcademicBlockAdmin(admin.ModelAdmin):
 
 
 admin.site.register(CustomUser, CustomUserAdmin)
-admin.site.register(Appointment)
+
+
+@admin.register(Appointment)
+class AppointmentAdmin(admin.ModelAdmin):
+    list_display = ('student', 'professor', 'appointment_time', 'slots', 'status', 'topic')
+    list_filter = ('status', 'topic')
+
+
 admin.site.register(Notification)

@@ -73,8 +73,11 @@ class AppointmentSerializer(serializers.ModelSerializer):
             'slots',
             'end_time',
             'status',
+            'topic',
+            'details',
         ]
         read_only_fields = ['id', 'student', 'end_time', 'status']
+        extra_kwargs = {'topic': {'required': True}}
 
     def get_student_name(self, obj):
         return obj.student.get_full_name() or obj.student.username
@@ -138,12 +141,21 @@ class OpenTimeSerializer(serializers.ModelSerializer):
         return attrs
 
 
-class AppointmentStatusSerializer(serializers.ModelSerializer):
-    """Used for updates: the only thing that can change after booking is the status."""
+class AppointmentUpdateSerializer(serializers.ModelSerializer):
+    """Used for updates: the status, and the student's reason while the request is still pending."""
 
     class Meta:
         model = Appointment
-        fields = ['status']
+        fields = ['status', 'topic', 'details']
+
+    def validate(self, attrs):
+        if 'topic' in attrs or 'details' in attrs:
+            appt = self.instance
+            if self.context['request'].user != appt.student:
+                raise serializers.ValidationError('Only the student who booked can change the reason.')
+            if appt.status != 'Pending':
+                raise serializers.ValidationError('The reason can only be changed while the request is pending.')
+        return attrs
 
     def validate_status(self, value):
         user = self.context['request'].user

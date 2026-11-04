@@ -1,0 +1,11 @@
+{# Why the student wants to meet: required category + optional note. Used by Book and Edit reason. #}
+<label>Reason:
+  <select id="{{ prefix }}-topic" required>
+    <option value="">Choose…</option>
+    {% for value, label in topics %}<option value="{{ value }}">{{ label }}</option>{% endfor %}
+  </select>
+</label>
+<label>Details (optional):
+  <textarea id="{{ prefix }}-details" maxlength="{{ details_max }}" rows="3"
+            placeholder="e.g. Doubt in assignment 3, question 2"></textarea>
+</label>

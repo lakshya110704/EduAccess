@@ -121,7 +121,20 @@ class Appointment(models.Model):
     # Stored (not computed in SQL) so the Postgres exclusion constraint can index tstzrange(start, end):
     # "start + interval" isn't IMMUTABLE in Postgres and can't be used in a constraint.
     end_time = models.DateTimeField(editable=False)
+    TOPIC_CHOICES = (
+        ('Doubt', 'Doubt'),
+        ('Project', 'Project'),
+        ('Attendance', 'Attendance'),
+        ('Marks', 'Marks'),
+        ('Other', 'Other'),
+    )
+    DETAILS_MAX_LENGTH = 200
+
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='Pending')
+    # Why the student wants to meet: a required category plus an optional note. The student can edit
+    # both while the request is pending, not after it's confirmed or cancelled.
+    topic = models.CharField(max_length=20, choices=TOPIC_CHOICES)
+    details = models.CharField(max_length=DETAILS_MAX_LENGTH, blank=True, default='')
 
     def __str__(self):
         return f'{self.student.username} → {self.professor.username} @ {self.appointment_time} ({self.status})'

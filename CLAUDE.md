@@ -84,7 +84,12 @@ All endpoints need a logged-in session; writes need the `X-CSRFToken` header.
   `/api/open-times/` — professors list/create/delete their own windows for today. Creating one is refused if it
   covers a confirmed appointment; pending requests it covers are declined with a notification. Bookings inside
   open time are refused. Students see windows as `open_today` on `/api/professors/` ("Open time today" column).
-- `GET|POST /api/appointments/`, `GET|PATCH /api/appointments/<id>/` — students book; only `status` is patchable after booking: professor → Confirmed/Cancelled, student → Cancelled; Cancelled is final. No PUT/DELETE. Each change notifies the other party
+- `GET|POST /api/appointments/`, `GET|PATCH /api/appointments/<id>/` — students book; after booking `status` is patchable: professor → Confirmed/Cancelled, student → Cancelled; Cancelled is final. No PUT/DELETE. Each change notifies the other party
+- Appointment reason: `topic` (required; `Appointment.TOPIC_CHOICES`: Doubt, Project, Attendance, Marks, Other) and
+  optional `details` (max 200). The student may PATCH `topic`/`details` only while the request is Pending
+  (`AppointmentUpdateSerializer`); the professor is notified. Shown in a Reason column on both dashboards; the
+  student's Edit button opens `#reason-dialog` (fields in `templates/reason-fields.html`). Migration 0012 gave
+  existing appointments topic "Other".
 - `GET /api/notifications/` — own notifications, newest first
 
 ## Running locally
