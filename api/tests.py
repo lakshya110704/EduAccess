@@ -880,3 +880,74 @@ class AppointmentReasonTests(BaseTestCase):
         self.assertContains(resp, '<option value="Attendance">Attendance</option>')
         self.assertContains(resp, 'id="reason-dialog"')
         self.assertContains(resp, 'maxlength="200"')
+
+
+class StatusNoteTests(BaseTestCase):
+    def setUp(self):
+        super().setUp()
+        self.prof.availability_status = 'Busy'
+        self.prof.save()
+        MyProfessor.objects.create(student=self.student, professor=self.prof)
+
+    def patch(self, data, user=None):
+        return self.as_user(user or self.prof).patch('/api/me/', data, format='json')
+
+    def seen_by_student(self):
+        return self.as_user(self.student).get('/api/professors/').json()[0]['status_note']
+
+    def later_today(self):
+        later = timezone.localtime() + timedelta(minutes=5)
+        if later.date() != timezone.localdate():
+            self.skipTest('too close to midnight for a same-day back time')
+        return later
+
+    def test_busy_note_with_back_time_shows_to_students(self):
+        back = self.later_today()
+        resp = self.patch({'status_pick': 'In class', 'status_text': ' Room 204 ', 'status_until': back.isoformat()})
+        self.assertEqual(resp.status_code, 200, resp.content)
+        note = self.seen_by_student()
+        self.assertEqual((note['pick'], note['text']), ('In class', 'Room 204'))
+        self.assertIsNotNone(note['until'])
+        self.assertIn('status_note', self.as_user(self.student).get('/api/professors/?search=lovelace').json()[0])
+
+    def test_pick_must_match_status(self):
+        self.assertEqual(self.patch({'status_pick': 'On leave'}).status_code, 400)
+        self.assertEqual(self.patch({'status_pick': 'Asleep'}).status_code, 400)
+        resp = self.patch({'availability_status': 'Unavailable', 'status_pick': 'On leave'})
+        self.assertEqual(resp.status_code, 200, resp.content)
+
+    def test_text_is_limited(self):
+        self.assertEqual(self.patch({'status_text': 'x' * 61}).status_code, 400)
+
+    def test_busy_back_time_must_be_later_today(self):
+        past = timezone.now() - timedelta(minutes=5)
+        self.assertEqual(self.patch({'status_until': past.isoformat()}).status_code, 400)
+        self.assertEqual(self.patch({'status_until': self.future.isoformat()}).status_code, 400)
+
+    def test_unavailable_can_be_back_on_a_later_day(self):
+        resp = self.patch({'availability_status': 'Unavailable', 'status_until': self.future.isoformat()})
+        self.assertEqual(resp.status_code, 200, resp.content)
+        self.assertIsNotNone(self.seen_by_student()['until'])
+
+    def test_free_has_no_note(self):
+        self.patch({'availability_status': 'Free'})
+        self.assertEqual(self.patch({'status_pick': 'Lunch'}).status_code, 400)
+
+    def test_changing_status_clears_note(self):
+        self.patch({'status_pick': 'Lunch'})
+        self.patch({'availability_status': 'Unavailable'})
+        self.assertIsNone(self.seen_by_student())
+
+    def test_note_hidden_once_back_time_passes(self):
+        CustomUser.objects.filter(pk=self.prof.pk).update(
+            status_pick='In class', status_until=timezone.now() - timedelta(minutes=1)
+        )
+        self.assertIsNone(self.seen_by_student())
+        self.assertEqual(self.as_user(self.prof).get('/api/me/').json()['availability_status'], 'Busy')
+
+    def test_students_cannot_set_a_note(self):
+        self.assertEqual(self.patch({'status_pick': 'Lunch'}, user=self.student).status_code, 400)
+
+    def test_note_not_on_directions_page(self):
+        self.patch({'status_text': 'Secret meeting'})
+        self.assertNotContains(self.client.get('/go/AB2/FB3/106/'), 'Secret meeting')

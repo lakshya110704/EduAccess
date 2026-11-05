@@ -73,7 +73,13 @@ All endpoints need a logged-in session; writes need the `X-CSRFToken` header.
 - `GET /api/professors/` — the requesting student's "My professors" list (`MyProfessor` links); `?search=` searches
   **all** professors (>= 2 chars, top 20, each with `is_mine`). `POST`/`DELETE /api/professors/<id>/mine/` adds/removes
   (students only). Built for ~1000 professors: the dashboard only polls the student's own list.
-- `GET|PATCH /api/me/` — current user; professors PATCH `availability_status`
+- `GET|PATCH /api/me/` — current user; professors PATCH `availability_status` and the status note
+- Status note (migration 0013): `status_pick` (quick pick from `STATUS_NOTE_PICKS`, per status), `status_text`
+  (max 60) and `status_until` on `CustomUser`, only for Busy (back time later today) or Unavailable (back on a
+  day; the UI sends local midnight). Changing status clears the note; once `status_until` passes the note is
+  hidden but the status stays. Read as `status_note` (`{pick, text, until}` or null) on `/api/me/` and
+  `/api/professors/`, shown under the status in My Professors and search, never on the `/go/` page. Professors
+  set it in `#status-note-dialog`, which opens after choosing Busy/Unavailable or from the header Note button.
 - Booking rules: 15-minute slots (`SLOT_LENGTH`), a request covers `slots` = 1 or 2, starting on a quarter hour;
   `end_time` is stored (set in `Appointment.save`). Overlapping *pending* requests are allowed; requests overlapping a
   *confirmed* appointment are refused. Confirming one auto-declines (Cancelled + notification) the overlapping

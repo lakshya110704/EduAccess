@@ -1,7 +1,16 @@
 from django.utils import timezone
 from rest_framework import serializers
 
-from .models import SLOT_LENGTH, Appointment, CustomUser, Notification, OpenTime
+from .models import SLOT_LENGTH, STATUS_NOTE_PICKS, Appointment, CustomUser, Notification, OpenTime
+
+NOTE_FIELDS = ('status_pick', 'status_text', 'status_until')
+
+
+def status_note_data(user):
+    note = user.status_note
+    if note and note['until']:
+        note['until'] = serializers.DateTimeField().to_representation(note['until'])
+    return note
 
 
 class ProfessorSerializer(serializers.ModelSerializer):
@@ -10,6 +19,7 @@ class ProfessorSerializer(serializers.ModelSerializer):
     display_name = serializers.SerializerMethodField()
     is_mine = serializers.SerializerMethodField()
     open_today = serializers.SerializerMethodField()
+    status_note = serializers.SerializerMethodField()
 
     class Meta:
         model = CustomUser
@@ -18,6 +28,7 @@ class ProfessorSerializer(serializers.ModelSerializer):
             'username',
             'display_name',
             'availability_status',
+            'status_note',
             'cabin_label',
             'directions_url',
             'is_mine',
@@ -34,26 +45,59 @@ class ProfessorSerializer(serializers.ModelSerializer):
     def get_display_name(self, obj):
         return obj.get_full_name() or obj.username
 
+    def get_status_note(self, obj):
+        return status_note_data(obj)
+
     def get_is_mine(self, obj):
         return obj.id in self.context.get('my_ids', set())
 
 
 class MeSerializer(serializers.ModelSerializer):
-    """The logged-in user. Only availability is editable, and only by professors."""
+    """The logged-in user. Only availability and its note are editable, and only by professors."""
 
     display_name = serializers.SerializerMethodField()
+    status_note = serializers.SerializerMethodField()
 
     class Meta:
         model = CustomUser
-        fields = ['id', 'username', 'display_name', 'role', 'availability_status', 'cabin_label']
+        fields = ['id', 'username', 'display_name', 'role', 'availability_status', 'status_note', 'cabin_label']
+        fields += NOTE_FIELDS
         read_only_fields = ['id', 'username', 'display_name', 'role', 'cabin_label']
+        extra_kwargs = {name: {'write_only': True} for name in NOTE_FIELDS}
 
     def get_display_name(self, obj):
         return obj.get_full_name() or obj.username
 
+    def get_status_note(self, obj):
+        return status_note_data(obj)
+
+    def validate_status_text(self, value):
+        return value.strip()
+
     def validate(self, attrs):
-        if 'availability_status' in attrs and self.instance.role != 'professor':
+        user = self.instance
+        if ('availability_status' in attrs or any(f in attrs for f in NOTE_FIELDS)) and user.role != 'professor':
             raise serializers.ValidationError('Only professors have an availability status.')
+        status = attrs.get('availability_status', user.availability_status)
+        if status != user.availability_status:
+            # A new status starts without a note unless one is sent along with it.
+            attrs = {'status_pick': '', 'status_text': '', 'status_until': None, **attrs}
+        if not any(f in attrs for f in NOTE_FIELDS):
+            return attrs
+        pick = attrs.get('status_pick', user.status_pick)
+        until = attrs.get('status_until', user.status_until)
+        has_note = pick or attrs.get('status_text', user.status_text) or until
+        if status == 'Free':
+            if has_note:
+                raise serializers.ValidationError('A note can only be added when Busy or Unavailable.')
+            return attrs
+        if pick and pick not in STATUS_NOTE_PICKS[status]:
+            raise serializers.ValidationError({'status_pick': f'Pick one of: {", ".join(STATUS_NOTE_PICKS[status])}.'})
+        if until and 'status_until' in attrs:
+            if until <= timezone.now():
+                raise serializers.ValidationError({'status_until': 'The back time must be in the future.'})
+            if status == 'Busy' and timezone.localtime(until).date() != timezone.localdate():
+                raise serializers.ValidationError({'status_until': 'Busy is for today. Use Unavailable for longer.'})
         return attrs
 
 

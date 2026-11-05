@@ -719,6 +719,30 @@ table a.action-directions {
   cursor: pointer;
 }
 
+/* Status note under the status, e.g. "In class · back 3:30 PM". */
+.status-note {
+  font-size: 0.8rem;
+  font-weight: normal;
+  color: #ddd;
+  max-width: 16rem;
+  overflow-wrap: anywhere;
+}
+
+.note-picks {
+  flex-wrap: wrap;
+  margin-top: 0.4rem;
+}
+
+dialog.panel label[hidden],
+.header-btn[hidden] {
+  display: none;
+}
+
+dialog.panel .note-picks label {
+  display: inline-block;
+  margin-top: 0;
+}
+
 /* Appointment reason: category in bold, the optional note underneath. */
 .reason-details {
   font-size: 0.85rem;

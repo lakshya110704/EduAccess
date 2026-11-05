@@ -28,6 +28,7 @@
         <input type="radio" name="availability-status" id="status-unavailable" value="Unavailable" {% if request.user.availability_status == "Unavailable" %}checked{% endif %}>
         <label for="status-unavailable">Unavailable</label>
       </fieldset>
+      <button type="button" class="header-btn" id="status-note-button"{% if request.user.availability_status == "Free" %} hidden{% endif %}><i class="fas fa-comment"></i> <span id="status-note-label">Note</span></button>
       <button type="button" class="header-btn" data-open-dialog="open-time-dialog"><i class="fas fa-door-open"></i> Open time</button>
       <button type="button" class="header-btn" data-open-dialog="cabin-dialog"><i class="fas fa-location-dot"></i> Cabin</button>
       <form method="post" action="{% url 'logout' %}" class="logout-form">
@@ -80,6 +81,26 @@
     </div>
     <p>Currently <strong>{{ request.user.cabin_label }}</strong>. Students see the change right away.</p>
     {% include "cabin-fields.html" with id_prefix="cabin-dialog" %}
+  </dialog>
+
+  <dialog id="status-note-dialog" class="panel" aria-labelledby="status-note-title">
+    <div class="panel-head">
+      <h3 id="status-note-title"><i class="fas fa-comment"></i> Why <span id="status-note-status"></span>?</h3>
+      <button type="button" class="panel-close" data-close-dialog aria-label="Close">✕</button>
+    </div>
+    <p>Optional. Students see it next to your status until you change status or the back time passes.</p>
+    <form id="status-note-form">
+      <fieldset class="segmented note-picks" id="status-note-picks" aria-label="Reason"></fieldset>
+      <label>Note (optional):
+        <input type="text" id="status-note-text" maxlength="{{ note_max }}" placeholder="e.g. Room 204">
+      </label>
+      <label id="status-note-time-label">Back at (optional): <input type="time" id="status-note-time" step="900"></label>
+      <label id="status-note-date-label">Back on (optional): <input type="date" id="status-note-date"></label>
+      <button type="submit"><i class="fas fa-check"></i> Save note</button>
+      <button type="button" id="status-note-clear" class="link-button">Clear note</button>
+      <div id="status-note-message" class="flash form-message" role="status"></div>
+    </form>
+    {{ note_picks|json_script:"status-note-picks-data" }}
   </dialog>
 </body>
 </html>

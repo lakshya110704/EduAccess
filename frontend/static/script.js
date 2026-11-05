@@ -172,8 +172,29 @@ function directionsLink(p) {
   });
 }
 
+// "In class: Room 204 · back 3:30 PM". Busy is back later today (a time); Unavailable is back on a day (a date).
+function noteText(status, note) {
+  if (!note) return "";
+  const parts = [[note.pick, note.text].filter(Boolean).join(": ")];
+  if (note.until) {
+    const until = new Date(note.until);
+    const when =
+      status === "Busy"
+        ? until.toLocaleTimeString([], { hour: "numeric", minute: "2-digit" })
+        : until.toLocaleDateString([], { weekday: "short", day: "numeric", month: "short" });
+    parts.push(`back ${when}`);
+  }
+  const text = parts.filter(Boolean).join(" · ");
+  return text.charAt(0).toUpperCase() + text.slice(1);
+}
+
 function statusCell(p) {
-  return el("td", { text: p.availability_status, className: `status-${p.availability_status.toLowerCase()}` });
+  const note = noteText(p.availability_status, p.status_note);
+  return el(
+    "td",
+    { text: p.availability_status, className: `status-${p.availability_status.toLowerCase()}` },
+    [note ? el("div", { text: note, className: "status-note" }) : null].filter(Boolean),
+  );
 }
 
 async function setMine(professor, add) {
@@ -349,10 +370,82 @@ async function saveReason(event) {
 
 // ---------- professor ----------
 
+let myStatus = null;
+
+// The header button shows the current note, and is hidden when Free (Free has no note).
+function showMyNote(me) {
+  myStatus = me;
+  document.getElementById("status-note-button").hidden = me.availability_status === "Free";
+  document.getElementById("status-note-label").textContent =
+    noteText(me.availability_status, me.status_note) || "Add note";
+}
+
+async function loadMyNote() {
+  try {
+    showMyNote(await api("/me/"));
+  } catch (error) {
+    console.error("Failed to load status", error);
+  }
+}
+
+function openNoteDialog() {
+  const status = myStatus.availability_status;
+  const note = myStatus.status_note || {};
+  const picks = JSON.parse(document.getElementById("status-note-picks-data").textContent)[status];
+  document.getElementById("status-note-status").textContent = status.toLowerCase();
+  document.getElementById("status-note-picks").replaceChildren(
+    ...["", ...picks].flatMap((pick, i) => {
+      const id = `status-note-pick-${i}`;
+      const radio = el("input", { attrs: { type: "radio", name: "status-note-pick", id, value: pick } });
+      radio.checked = pick === (note.pick || "");
+      return [radio, el("label", { text: pick || "None", attrs: { for: id } })];
+    }),
+  );
+  document.getElementById("status-note-text").value = note.text || "";
+  // Busy: a time today. Unavailable: a day. Prefill in local time.
+  const until = note.until ? new Date(note.until) : null;
+  const local = until ? new Date(until - until.getTimezoneOffset() * 60000).toISOString() : "";
+  document.getElementById("status-note-time-label").hidden = status !== "Busy";
+  document.getElementById("status-note-date-label").hidden = status === "Busy";
+  document.getElementById("status-note-time").value = status === "Busy" ? local.slice(11, 16) : "";
+  document.getElementById("status-note-date").value = status === "Busy" ? "" : local.slice(0, 10);
+  const today = new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+  document.getElementById("status-note-date").min = today;
+  document.getElementById("status-note-message").textContent = "";
+  openDialog("status-note-dialog");
+}
+
+async function saveNote(note) {
+  try {
+    showMyNote(await api("/me/", { method: "PATCH", body: note }));
+    document.getElementById("status-note-dialog").close();
+  } catch (error) {
+    showMessage("status-note-message", error.message, "error");
+  }
+}
+
+function submitNote(event) {
+  event.preventDefault();
+  const busy = myStatus.availability_status === "Busy";
+  const time = document.getElementById("status-note-time").value;
+  const date = document.getElementById("status-note-date").value;
+  // Local wall-clock time to an instant: today at the time for Busy, start of the day for Unavailable.
+  const today = new Date().toLocaleDateString("en-CA");
+  let until = null;
+  if (busy && time) until = new Date(`${today}T${time}`).toISOString();
+  if (!busy && date) until = new Date(`${date}T00:00`).toISOString();
+  saveNote({
+    status_pick: document.querySelector('input[name="status-note-pick"]:checked')?.value || "",
+    status_text: document.getElementById("status-note-text").value,
+    status_until: until,
+  });
+}
+
 async function updateAvailability(event) {
   const status = event.target.value;
   try {
-    await api("/me/", { method: "PATCH", body: { availability_status: status } });
+    showMyNote(await api("/me/", { method: "PATCH", body: { availability_status: status } }));
+    if (status !== "Free") openNoteDialog();
     showMessage("availability-message", `Status set to ${status}.`);
     // Brief confirmation only; clear it unless a newer message replaced it.
     setTimeout(() => {
@@ -452,7 +545,10 @@ function refresh() {
   loadNotifications();
   loadAppointments();
   if (PAGE === "student") loadProfessors();
-  if (PAGE === "professor") loadOpenTimes();
+  if (PAGE === "professor") {
+    loadOpenTimes();
+    loadMyNote();
+  }
 }
 
 window.addEventListener("DOMContentLoaded", () => {
@@ -469,6 +565,11 @@ window.addEventListener("DOMContentLoaded", () => {
   }
   if (PAGE === "professor") {
     document.getElementById("open-time-form").addEventListener("submit", addOpenTime);
+    document.getElementById("status-note-button").addEventListener("click", openNoteDialog);
+    document.getElementById("status-note-form").addEventListener("submit", submitNote);
+    document
+      .getElementById("status-note-clear")
+      .addEventListener("click", () => saveNote({ status_pick: "", status_text: "", status_until: null }));
     for (const radio of document.querySelectorAll('input[name="availability-status"]')) {
       radio.addEventListener("change", updateAvailability);
     }

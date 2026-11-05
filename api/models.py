@@ -5,6 +5,7 @@ from django.contrib.auth.models import AbstractUser, Group, Permission
 from django.db import models
 from django.db.models import Q
 from django.db.models.functions import Lower
+from django.utils import timezone
 
 # Role options
 USER_ROLES = (
@@ -46,11 +47,22 @@ AVAILABILITY_CHOICES = (
     ('Busy', 'Busy'),
     ('Unavailable', 'Unavailable'),
 )
+# Quick picks for the status note. Busy is short (back later today), Unavailable is long (back on a date).
+STATUS_NOTE_PICKS = {
+    'Busy': ['In class', 'In a meeting', 'Lunch'],
+    'Unavailable': ['On leave', 'Conference', 'Out of campus'],
+}
+STATUS_NOTE_MAX_LENGTH = 60
 
 
 class CustomUser(AbstractUser):
     role = models.CharField(max_length=20, choices=USER_ROLES)
     availability_status = models.CharField(max_length=20, choices=AVAILABILITY_CHOICES, default='Unavailable')
+    # Status note, only for Busy/Unavailable; cleared whenever the status changes.
+    status_pick = models.CharField(max_length=30, blank=True, default='')
+    status_text = models.CharField(max_length=STATUS_NOTE_MAX_LENGTH, blank=True, default='')
+    # When they expect to be back: a time today for Busy, the start of a day for Unavailable.
+    status_until = models.DateTimeField(null=True, blank=True)
     # Cabin location, displayed as "AB<academic_block> FB<faculty_block> : <cabin>".
     academic_block = models.PositiveSmallIntegerField(null=True, blank=True)
     faculty_block = models.PositiveSmallIntegerField(null=True, blank=True)
@@ -102,6 +114,15 @@ class CustomUser(AbstractUser):
         if self.has_cabin:
             return f'/go/AB{self.academic_block}/FB{self.faculty_block}/{self.cabin}/'
         return ''
+
+    @property
+    def status_note(self):
+        """The note students see, or None. It is hidden once the "back" time has passed."""
+        if not (self.status_pick or self.status_text or self.status_until):
+            return None
+        if self.status_until and self.status_until <= timezone.now():
+            return None
+        return {'pick': self.status_pick, 'text': self.status_text, 'until': self.status_until}
 
     def get_full_name(self):
         return ' '.join(part for part in (self.first_name, self.middle_name, self.last_name) if part).strip()

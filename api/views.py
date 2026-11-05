@@ -19,6 +19,8 @@ from rest_framework.response import Response
 
 from .forms import CabinForm, SignupForm
 from .models import (
+    STATUS_NOTE_MAX_LENGTH,
+    STATUS_NOTE_PICKS,
     AcademicBlock,
     Appointment,
     CustomUser,
@@ -382,7 +384,11 @@ def student_dashboard(request):
 def professor_dashboard(request):
     if not request.user.has_cabin:
         return redirect('professor_cabin')
-    return render(request, 'professor-dashboard.html', {'cabin_form': _cabin_form(request.user)})
+    return render(
+        request,
+        'professor-dashboard.html',
+        {'cabin_form': _cabin_form(request.user), 'note_picks': STATUS_NOTE_PICKS, 'note_max': STATUS_NOTE_MAX_LENGTH},
+    )
 
 
 def _cabin_form(user, data=None):
