@@ -1,7 +1,16 @@
 from django.utils import timezone
 from rest_framework import serializers
 
-from .models import SLOT_LENGTH, STATUS_NOTE_PICKS, Appointment, CustomUser, Notification, OpenTime
+from .models import (
+    SLOT_LENGTH,
+    STATUS_NOTE_PICKS,
+    AcademicBlock,
+    Appointment,
+    CustomUser,
+    FacultyBlock,
+    Notification,
+    OpenTime,
+)
 
 NOTE_FIELDS = ('status_pick', 'status_text', 'status_until')
 
@@ -99,6 +108,23 @@ class MeSerializer(serializers.ModelSerializer):
             if status == 'Busy' and timezone.localtime(until).date() != timezone.localdate():
                 raise serializers.ValidationError({'status_until': 'Busy is for today. Use Unavailable for longer.'})
         return attrs
+
+
+class FacultyBlockOptionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = FacultyBlock
+        fields = ['id', 'number', 'floor_label']
+
+
+class CampusBlockSerializer(serializers.ModelSerializer):
+    """An academic block and its faculty blocks, for picking a cabin. `name` is the label the website shows."""
+
+    name = serializers.CharField(source='__str__')
+    faculty_blocks = FacultyBlockOptionSerializer(many=True)
+
+    class Meta:
+        model = AcademicBlock
+        fields = ['id', 'number', 'name', 'faculty_blocks']
 
 
 class AppointmentSerializer(serializers.ModelSerializer):

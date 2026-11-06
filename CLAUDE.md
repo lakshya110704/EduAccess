@@ -96,6 +96,10 @@ All endpoints need a logged-in session; writes need the `X-CSRFToken` header.
   (`AppointmentUpdateSerializer`); the professor is notified. Shown in a Reason column on both dashboards; the
   student's Edit button opens `#reason-dialog` (fields in `templates/reason-fields.html`). Migration 0012 gave
   existing appointments topic "Other".
+- App parity endpoints: `POST /api/signup/` (public, reuses `SignupForm`, creates an inactive account, never logs in;
+  `CsrfForAnonymous` enforces CSRF because DRF skips it for anonymous requests), `GET /api/signup/options/` (public,
+  email domains), `GET /api/campus-blocks/` (professors, same blocks as `CabinForm`) and `PUT /api/me/cabin/`
+  (professors, reuses `CabinForm`, exempt from `ProfessorHasCabin` so a professor with no cabin can set one).
 - `GET /api/notifications/` — own notifications, newest first
 
 ## Running locally

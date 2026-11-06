@@ -56,6 +56,8 @@ class SignupForm(UserCreationForm):
 
 
 CABIN_NUMBER = re.compile(r'^[A-Z0-9-]{1,10}$')
+# Only academic blocks a professor can actually finish choosing from.
+CABIN_ACADEMIC_BLOCKS = AcademicBlock.objects.filter(faculty_blocks__isnull=False).distinct()
 
 
 class CabinForm(forms.Form):
@@ -63,7 +65,7 @@ class CabinForm(forms.Form):
     The page's JavaScript only filters the faculty block list to the chosen academic block."""
 
     academic_block = forms.ModelChoiceField(
-        queryset=AcademicBlock.objects.filter(faculty_blocks__isnull=False).distinct(),
+        queryset=CABIN_ACADEMIC_BLOCKS,
         empty_label='Academic block',
     )
     faculty_block = forms.ModelChoiceField(

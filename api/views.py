@@ -11,13 +11,14 @@ from django.utils import timezone
 from django.utils.http import url_has_allowed_host_and_scheme
 from django.views.decorators.http import require_POST
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import filters, generics, mixins, viewsets
+from rest_framework import filters, generics, mixins, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.exceptions import PermissionDenied, ValidationError
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
+from rest_framework.views import APIView
 
-from .forms import CabinForm, SignupForm
+from .forms import CABIN_ACADEMIC_BLOCKS, CabinForm, SignupForm
 from .models import (
     STATUS_NOTE_MAX_LENGTH,
     STATUS_NOTE_PICKS,
@@ -30,10 +31,18 @@ from .models import (
     OpenTime,
     format_cabin,
 )
-from .permissions import IsAppointmentParticipant, ProfessorHasCabin, dashboard_for, role_required
+from .permissions import (
+    CsrfForAnonymous,
+    IsAppointmentParticipant,
+    IsProfessor,
+    ProfessorHasCabin,
+    dashboard_for,
+    role_required,
+)
 from .serializers import (
     AppointmentSerializer,
     AppointmentUpdateSerializer,
+    CampusBlockSerializer,
     MeSerializer,
     NotificationSerializer,
     OpenTimeSerializer,
@@ -263,6 +272,63 @@ class MeView(generics.RetrieveUpdateAPIView):
 
     def get_object(self):
         return self.request.user
+
+
+def _form_data(request):
+    """A JSON body as a Django form expects it. Anything that isn't a plain string or number counts as missing."""
+    data = request.data if isinstance(request.data, dict) else {}
+    return {k: v for k, v in data.items() if isinstance(v, str | int) and not isinstance(v, bool)}
+
+
+def _form_errors(form):
+    return ValidationError({field: [str(message) for message in errors] for field, errors in form.errors.items()})
+
+
+class SignupView(APIView):
+    """POST /api/signup/: the website's sign-up for the app. Creates an inactive account and doesn't log in."""
+
+    authentication_classes = [CsrfForAnonymous]
+    permission_classes = [AllowAny]
+
+    def post(self, request):
+        if request.user.is_authenticated:
+            raise PermissionDenied('You are already logged in.')
+        form = SignupForm(_form_data(request))
+        if not form.is_valid():
+            raise _form_errors(form)
+        user = form.save()
+        return Response({'username': user.username, 'is_active': user.is_active}, status=status.HTTP_201_CREATED)
+
+
+class SignupOptionsView(APIView):
+    """GET /api/signup/options/: the email domain each role must register with."""
+
+    authentication_classes = []
+    permission_classes = [AllowAny]
+
+    def get(self, request):
+        return Response({'email_domains': settings.SIGNUP_EMAIL_DOMAINS})
+
+
+class CampusBlocksView(generics.ListAPIView):
+    """GET /api/campus-blocks/: the choices for a professor's cabin, the same ones CabinForm offers."""
+
+    permission_classes = [IsAuthenticated, IsProfessor]
+    serializer_class = CampusBlockSerializer
+    queryset = CABIN_ACADEMIC_BLOCKS.prefetch_related('faculty_blocks')
+
+
+class MyCabinView(APIView):
+    """PUT /api/me/cabin/: set a cabin. Leaves out ProfessorHasCabin, or a professor without one could never set it."""
+
+    permission_classes = [IsAuthenticated, IsProfessor]
+
+    def put(self, request):
+        form = CabinForm(_form_data(request))
+        if not form.is_valid():
+            raise _form_errors(form)
+        form.save(request.user)
+        return Response(MeSerializer(request.user).data)
 
 
 # Page views

@@ -951,3 +951,166 @@ class StatusNoteTests(BaseTestCase):
     def test_note_not_on_directions_page(self):
         self.patch({'status_text': 'Secret meeting'})
         self.assertNotContains(self.client.get('/go/AB2/FB3/106/'), 'Secret meeting')
+
+
+class SignupApiTests(TestCase):
+    password = 'a-long-unusual-pass-77'
+
+    def setUp(self):
+        self.client = APIClient()
+
+    def data(self, **overrides):
+        return {
+            'role': 'student',
+            'username': 'riya',
+            'first_name': 'Riya',
+            'middle_name': '',
+            'last_name': 'Sharma',
+            'email': 'Riya@muj.manipal.edu',
+            'college_id': 'ab123',
+            'password1': self.password,
+            'password2': self.password,
+            **overrides,
+        }
+
+    def post(self, **overrides):
+        return self.client.post('/api/signup/', self.data(**overrides), format='json')
+
+    def test_creates_inactive_account_without_logging_in(self):
+        resp = self.post()
+        self.assertEqual(resp.status_code, 201, resp.content)
+        self.assertEqual(resp.json(), {'username': 'riya', 'is_active': False})
+        user = CustomUser.objects.get(username='riya')
+        self.assertEqual((user.is_active, user.email, user.college_id), (False, 'riya@muj.manipal.edu', 'AB123'))
+        self.assertTrue(user.check_password(self.password))
+        self.assertNotIn('_auth_user_id', self.client.session)
+
+    def test_form_rules_apply_with_the_same_messages(self):
+        make_user('old', 'student', email='old@muj.manipal.edu', college_id='OLD1')
+        cases = [
+            ({'email': 'riya@gmail.com'}, 'email', 'Students must register with their @muj.manipal.edu email.'),
+            ({'email': 'OLD@muj.manipal.edu'}, 'email', 'An account with this email already exists.'),
+            ({'college_id': 'old1'}, 'college_id', 'An account with this roll number already exists.'),
+        ]
+        for overrides, field, message in cases:
+            with self.subTest(field=field, message=message):
+                resp = self.post(**overrides)
+                self.assertEqual(resp.status_code, 400)
+                self.assertEqual(resp.json(), {field: [message]})
+        self.assertFalse(CustomUser.objects.filter(username='riya').exists())
+
+    def test_role_cannot_be_admin_and_extra_fields_are_ignored(self):
+        self.assertIn('role', self.post(role='admin').json())
+        resp = self.post(is_staff=True, is_superuser=True, is_active=True)
+        self.assertEqual(resp.status_code, 201)
+        user = CustomUser.objects.get(username='riya')
+        self.assertEqual((user.is_staff, user.is_superuser, user.is_active), (False, False, False))
+
+    def test_weak_or_mismatched_password_rejected(self):
+        self.assertEqual(self.post(password1='secret', password2='secret').status_code, 400)
+        self.assertIn('password2', self.post(password2='different-pass-88').json())
+
+    def test_malformed_bodies_are_400(self):
+        for body in ([1, 2], {'username': ['riya'], 'first_name': {'a': 1}}):
+            with self.subTest(body=body):
+                self.assertEqual(self.client.post('/api/signup/', body, format='json').status_code, 400)
+
+    def test_csrf_is_enforced_for_anonymous_callers(self):
+        client = APIClient(enforce_csrf_checks=True)
+        without = client.post('/api/signup/', self.data(), format='json')
+        self.assertEqual(without.status_code, 403)
+        self.assertIn('CSRF', without.json()['detail'])
+        self.assertFalse(CustomUser.objects.filter(username='riya').exists())
+        client.get('/login/')
+        token = client.cookies['csrftoken'].value
+        resp = client.post('/api/signup/', self.data(), format='json', headers={'X-CSRFToken': token})
+        self.assertEqual(resp.status_code, 201, resp.content)
+
+    def test_logged_in_user_cannot_sign_up(self):
+        self.client.force_login(make_user('stu', 'student'))
+        self.assertEqual(self.post().status_code, 403)
+        self.assertFalse(CustomUser.objects.filter(username='riya').exists())
+
+    def test_get_is_not_allowed(self):
+        self.assertEqual(self.client.get('/api/signup/').status_code, 405)
+
+    def test_options_are_public(self):
+        resp = self.client.get('/api/signup/options/')
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(
+            resp.json(), {'email_domains': {'student': 'muj.manipal.edu', 'professor': 'jaipur.manipal.edu'}}
+        )
+
+
+class CabinApiTests(BaseTestCase):
+    def setUp(self):
+        super().setUp()
+        self.ab2 = AcademicBlock.objects.create(number=2)
+        self.ab4 = AcademicBlock.objects.create(number=4, name='LHC')
+        AcademicBlock.objects.create(number=9)  # No faculty blocks, so it isn't offered.
+        self.fb3 = FacultyBlock.objects.create(academic_block=self.ab2, number=3, floor=1)
+        self.lhc1 = FacultyBlock.objects.create(academic_block=self.ab4, number=1)
+
+    def put(self, user=None, **overrides):
+        body = {'academic_block': self.ab2.id, 'faculty_block': self.fb3.id, 'cabin': 'g-12', **overrides}
+        return self.as_user(user or self.other_prof).put('/api/me/cabin/', body, format='json')
+
+    def test_campus_blocks_match_the_cabin_form(self):
+        resp = self.as_user(self.other_prof).get('/api/campus-blocks/')
+        self.assertEqual(resp.status_code, 200)
+        self.assertEqual(
+            resp.json(),
+            [
+                {
+                    'id': self.ab2.id,
+                    'number': 2,
+                    'name': 'Academic Block 2',
+                    'faculty_blocks': [{'id': self.fb3.id, 'number': 3, 'floor_label': 'Floor 1'}],
+                },
+                {
+                    'id': self.ab4.id,
+                    'number': 4,
+                    'name': 'LHC',
+                    'faculty_blocks': [{'id': self.lhc1.id, 'number': 1, 'floor_label': ''}],
+                },
+            ],
+        )
+
+    def test_campus_blocks_are_for_professors_only(self):
+        self.assertEqual(APIClient().get('/api/campus-blocks/').status_code, 403)
+        resp = self.as_user(self.student).get('/api/campus-blocks/')
+        self.assertEqual((resp.status_code, resp.json()), (403, {'detail': 'Only professors have a cabin.'}))
+
+    def test_professor_without_cabin_can_set_one_and_passes_the_gate(self):
+        self.assertFalse(self.other_prof.has_cabin)
+        resp = self.put()
+        self.assertEqual(resp.status_code, 200, resp.content)
+        self.assertEqual(resp.json()['cabin_label'], 'AB2 FB3 : G-12')
+        self.assertEqual(resp.json().keys(), self.client.get('/api/me/').json().keys())
+        self.assertEqual(self.client.patch('/api/me/', {'availability_status': 'Free'}, format='json').status_code, 200)
+
+    def test_professor_can_change_cabin(self):
+        self.assertEqual(self.put(user=self.prof, cabin='210').json()['cabin_label'], 'AB2 FB3 : 210')
+
+    def test_form_rules_apply(self):
+        wrong_block = self.put(faculty_block=self.lhc1.id)
+        self.assertEqual(wrong_block.status_code, 400)
+        self.assertEqual(wrong_block.json(), {'faculty_block': ['That faculty block is not in Academic Block 2.']})
+        self.assertIn('cabin', self.put(cabin='no spaces').json())
+        self.assertIn('academic_block', self.put(academic_block=10**30).json())
+        self.assertIn('academic_block', self.put(academic_block=True).json())
+        self.other_prof.refresh_from_db()
+        self.assertFalse(self.other_prof.has_cabin)
+
+    def test_only_professors_can_put(self):
+        resp = self.put(user=self.student)
+        self.assertEqual((resp.status_code, resp.json()), (403, {'detail': 'Only professors have a cabin.'}))
+        self.student.refresh_from_db()
+        self.assertEqual(self.student.cabin, '')
+        self.assertEqual(APIClient().put('/api/me/cabin/', {}, format='json').status_code, 403)
+
+    def test_csrf_is_enforced(self):
+        client = APIClient(enforce_csrf_checks=True)
+        client.force_login(self.other_prof)
+        body = {'academic_block': self.ab2.id, 'faculty_block': self.fb3.id, 'cabin': '106'}
+        self.assertEqual(client.put('/api/me/cabin/', body, format='json').status_code, 403)

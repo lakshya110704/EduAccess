@@ -3,6 +3,7 @@ from functools import wraps
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
 from rest_framework import permissions
+from rest_framework.authentication import SessionAuthentication
 
 
 def dashboard_for(user):
@@ -46,3 +47,18 @@ class ProfessorHasCabin(permissions.BasePermission):
     def has_permission(self, request, view):
         user = request.user
         return request.method in permissions.SAFE_METHODS or user.role != 'professor' or user.has_cabin
+
+
+class IsProfessor(permissions.BasePermission):
+    message = 'Only professors have a cabin.'
+
+    def has_permission(self, request, view):
+        return request.user.role == 'professor'
+
+
+class CsrfForAnonymous(SessionAuthentication):
+    """DRF only checks CSRF for logged-in sessions. Public write endpoints use this to check it for everyone."""
+
+    def authenticate(self, request):
+        self.enforce_csrf(request)
+        return super().authenticate(request)
